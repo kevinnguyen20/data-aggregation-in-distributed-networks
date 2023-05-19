@@ -21,7 +21,7 @@ services:
     depends_on:
       - jobmanager
     deploy:
-      replicas: 1
+      replicas: 2
     networks:
       - flink-network
     command: taskmanager
