@@ -1,0 +1,35 @@
+services:
+  jobmanager:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jobmanager
+    networks:
+      - flink-network
+    ports:
+      - '8081:8081'
+    command: jobmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+      
+  taskmanager:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - jobmanager
+    deploy:
+      replicas: 1
+    networks:
+      - flink-network
+    command: taskmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 2
+
+networks:
+  flink-network:
