@@ -1,38 +1,68 @@
-networks:
-  flink-network-1:
-  flink-network-2:
-
 services:
-  jobmanager:
+  jobmanager-1:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: jobmanager
+    container_name: jobmanager-1
     networks:
       - flink-network-1
-      - flink-network-2
     ports:
       - '8081:8081'
     command: jobmanager
     environment:
       - |
         FLINK_PROPERTIES=
-        jobmanager.rpc.address: jobmanager
+        jobmanager.rpc.address: jobmanager-1
       
-  taskmanager:
+  taskmanager-1:
     build:
       context: .
       dockerfile: Dockerfile
     depends_on:
-      - jobmanager
+      - jobmanager-1
     deploy:
-      replicas: 2
+      replicas: 1
     networks:
       - flink-network-1
+    command: taskmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager-1
+        taskmanager.numberOfTaskSlots: 2
+
+  jobmanager-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jobmanager-2
+    networks:
+      - flink-network-2
+    ports:
+      - '8082:8081'  # Use a different host port for the second JobManager
+    command: jobmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager-2
+      
+  taskmanager-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - jobmanager-2
+    deploy:
+      replicas: 1
+    networks:
       - flink-network-2
     command: taskmanager
     environment:
       - |
         FLINK_PROPERTIES=
-        jobmanager.rpc.address: jobmanager
+        jobmanager.rpc.address: jobmanager-2
         taskmanager.numberOfTaskSlots: 2
+
+networks:
+  flink-network-1:
+  flink-network-2:
