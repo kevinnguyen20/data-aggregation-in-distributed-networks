@@ -1,3 +1,7 @@
+networks:
+  flink-network-1:
+  flink-network-2:
+
 services:
   jobmanager:
     build:
@@ -5,7 +9,8 @@ services:
       dockerfile: Dockerfile
     container_name: jobmanager
     networks:
-      - flink-network
+      - flink-network-1
+      - flink-network-2
     ports:
       - '8081:8081'
     command: jobmanager
@@ -21,15 +26,13 @@ services:
     depends_on:
       - jobmanager
     deploy:
-      replicas: 1
+      replicas: 2
     networks:
-      - flink-network
+      - flink-network-1
+      - flink-network-2
     command: taskmanager
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
         taskmanager.numberOfTaskSlots: 2
-
-networks:
-  flink-network:
