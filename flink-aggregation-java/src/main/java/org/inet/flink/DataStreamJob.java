@@ -20,16 +20,13 @@ package org.inet.flink;
 
 // import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.typeinfo.Types;
+import org.apache.flink.api.connector.source.util.ratelimit.RateLimiterStrategy;
+import org.apache.flink.connector.datagen.source.DataGeneratorSource;
+import org.apache.flink.connector.datagen.source.GeneratorFunction;
+import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.windowing.time.Time;
-import org.apache.flink.util.Collector;
-
-import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
-
-
 
 /**
  * Skeleton for a Flink DataStream Job.
@@ -49,6 +46,8 @@ public class DataStreamJob {
 		// Sets up the execution environment, which is the main entry point
 		// to building Flink applications.
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+		env.setParallelism(4);
 
 		/*
 		 * Here, you can start creating your execution plan for Flink.
@@ -70,25 +69,19 @@ public class DataStreamJob {
 		 *
 		 */
 
-		DataStream<Tuple2<String, Integer>> dataStream = env
-			.socketTextStream("localhost", 9999)
-			.flatMap(new Splitter())
-			.keyBy(value -> value.f0)
-			.window(TumblingProcessingTimeWindows.of(Time.seconds(5)))
-			.sum(1);
+		GeneratorFunction<Long, String> generatorFunction = index -> "Number: " + index;
+		long numberOfRecords = 1000;
 
-		dataStream.print();
+		DataGeneratorSource<String> generatorSource = new DataGeneratorSource<>(
+            generatorFunction,
+            numberOfRecords,
+            // RateLimiterStrategy.perSecond(4),
+            Types.STRING);
+		
+		DataStreamSource<String> streamSource = env.fromSource(generatorSource, WatermarkStrategy.noWatermarks(), "Data Generator");
+		streamSource.print();
 		
 		// Execute program, beginning computation.
-		env.execute("Flink Java API Skeleton");
-	}
-
-	public static class Splitter implements FlatMapFunction<String, Tuple2<String, Integer>> {
-		@Override
-		public void flatMap(String sentence, Collector<Tuple2<String, Integer>> out) {
-			for (String word: sentence.split(" ")) {
-				out.collect(new Tuple2<String, Integer>(word, 1));
-			}
-		}
+		env.execute("Flink Data Generation");
 	}
 }
