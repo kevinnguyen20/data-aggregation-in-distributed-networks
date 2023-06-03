@@ -69,14 +69,14 @@ under the License.
 
 		<!-- Add connector dependencies here. They must be in the default scope (compile). -->
 
-		<!-- Example:
+		<!-- Example: -->
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-connector-kafka</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
-		-->
+		
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
