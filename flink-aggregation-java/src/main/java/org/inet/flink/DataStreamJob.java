@@ -35,6 +35,7 @@ import org.apache.flink.connector.kafka.source.KafkaSourceBuilder;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.IOException;
 
 import java.util.Properties;
@@ -58,14 +59,15 @@ public class DataStreamJob {
 	
 	static {
 		Properties properties = new Properties();
-		try (FileInputStream fis = new FileInputStream("flink.properties")) {
-			properties.load(fis);
+		// try (FileInputStream fis = new FileInputStream("flink.properties")) {
+		try (InputStream inputStream = DataStreamJob.class.getClassLoader().getResourceAsStream("flink.properties")) {
+			properties.load(inputStream);
 
-			KAFKA_BOOTSTRAP_SERVERS = properties.getProperty("KAFKA_BOOTSTRAP_SERVERS");
-			CONSUMER_TOPIC = properties.getProperty("CONSUMER_TOPIC");
 		} catch (IOException e) {
 			e.getMessage();
 		}
+		KAFKA_BOOTSTRAP_SERVERS = properties.getProperty("KAFKA_BOOTSTRAP_SERVERS");
+		CONSUMER_TOPIC = properties.getProperty("CONSUMER_TOPIC");
 	}
 
 	public static void main(String[] args) throws Exception {
