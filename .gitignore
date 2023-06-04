@@ -1,3 +1,3 @@
 .vscode
-config
+config.sh
 flink-aggregation-java/target
