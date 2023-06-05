@@ -23,7 +23,5 @@ if [[ "$1" = "stop" ]]; then
     "$FLINK_HOME/bin/stop-cluster.sh"
 
     # Stop Zookeeper and the Kafka broker
-    echo "Stopping Zookeeper"
-    echo "Stopping the Kafka broker"
     ./kafka-service.sh stop
 fi

@@ -92,6 +92,13 @@ under the License.
 			<scope>compile</scope>
 		</dependency>
 
+		    <dependency>
+				<groupId>org.apache.kafka</groupId>
+				<artifactId>kafka-clients</artifactId>
+				<version>3.4.0</version>
+				<scope>compile</scope>
+			</dependency>
+
 		<!-- Add logging framework, to produce console output when running in the IDE. -->
 		<!-- These dependencies are excluded from the application JAR by default. -->
 		<dependency>
