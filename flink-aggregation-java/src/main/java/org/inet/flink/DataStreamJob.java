@@ -16,29 +16,36 @@
  * limitations under the License.
  */
 
-package org.inet.flink;
+ package org.inet.flink;
 
-// import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+ import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+ import org.apache.flink.api.common.functions.MapFunction;
+ import org.apache.flink.connector.datagen.source.DataGeneratorSource;
+ import org.apache.flink.connector.datagen.source.GeneratorFunction;
+ import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
+ import org.apache.flink.connector.kafka.source.KafkaSource;
+ import org.apache.flink.connector.kafka.source.KafkaSourceBuilder;
+ import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+ import org.apache.flink.streaming.api.datastream.DataStream;
+ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+ import org.apache.flink.streaming.api.functions.source.SourceFunction;
+ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
+ import org.apache.flink.streaming.util.serialization.SimpleStringSchema;
+ import org.apache.flink.streaming.util.serialization.DeserializationSchema;
 
-import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.common.typeinfo.Types;
-import org.apache.flink.api.connector.source.util.ratelimit.RateLimiterStrategy;
-import org.apache.flink.connector.datagen.source.DataGeneratorSource;
-import org.apache.flink.connector.datagen.source.GeneratorFunction;
-import org.apache.flink.streaming.api.datastream.DataStreamSource;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.util.serialization.SimpleStringSchema;
-
-import org.apache.flink.connector.kafka.source.KafkaSource;
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.connector.kafka.source.KafkaSourceBuilder;
-import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
-
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.IOException;
-
-import java.util.Properties;
+ import org.apache.kafka.common.serialization.StringDeserializer;
+  
+ import java.io.FileInputStream;
+ import java.io.InputStream;
+ import java.io.IOException;
+ 
+ import java.util.Properties;
+ 
+ import java.util.ArrayList;
+ import java.util.List;
+ 
+ import org.inet.flink.model.Product;
+ import org.inet.flink.mapper.JsonToProductMapper;
 
 /**
  * Skeleton for a Flink DataStream Job.
@@ -86,6 +93,7 @@ public class DataStreamJob {
 			.build();
 
 		DataStream<String> streamSource = env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source");
+		DataStream<Product> products = streamSource.map(new JsonToProductMapper());
 
 
 		/*
@@ -108,7 +116,7 @@ public class DataStreamJob {
 		 *
 		 */
 
-		streamSource.print();
+		products.print();
 		
 		// Execute program, beginning computation.
 		env.execute("Flink Data Generation");
