@@ -9,6 +9,8 @@ import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.KafkaSourceBuilder;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.flink.api.common.restartstrategy.RestartStrategies;
+import org.apache.flink.api.common.time.Time;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
@@ -67,7 +69,11 @@ public class DataStreamJob {
 		// to building Flink applications.
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-		// env.setParallelism(8);
+		env.setParallelism(8);
+		env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
+			2, // Number of restart attempts
+			Time.seconds(1L) // Delay between restarts
+		));
 
 		KafkaSource<String> source = KafkaSource.<String>builder()
 			.setBootstrapServers(KAFKA_BOOTSTRAP_SERVERS)
@@ -121,7 +127,7 @@ public class DataStreamJob {
 
 		long startTime = System.currentTimeMillis();
 		
-		int batchSize = 10000000;
+		int batchSize = 10;
 		for (int i = 1; i <= batchSize; i++) {
 			String recordValue = "{\"id\": " + i + ", \"name\": \"Apple\", \"price\": 0.85}";
 			ProducerRecord<String, String> record = new ProducerRecord<>(CONSUMER_TOPIC, recordValue);
