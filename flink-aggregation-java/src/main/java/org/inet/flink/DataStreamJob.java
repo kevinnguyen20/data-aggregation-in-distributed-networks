@@ -3,8 +3,6 @@ package org.inet.flink;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.connector.datagen.source.DataGeneratorSource;
-import org.apache.flink.connector.datagen.source.GeneratorFunction;
 import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.KafkaSourceBuilder;
@@ -33,6 +31,7 @@ import java.util.List;
 
 import org.inet.flink.model.Product;
 import org.inet.flink.mapper.JsonToProductMapper;
+import org.inet.flink.generator.DataGenerator;
 
 /**
  * Skeleton for a Flink DataStream Job.
@@ -50,41 +49,24 @@ public class DataStreamJob {
 
 	private static String KAFKA_BOOTSTRAP_SERVERS;
 	private static String CONSUMER_TOPIC;
-	
-	static {
-		Properties properties = new Properties();
-		// try (FileInputStream fis = new FileInputStream("flink.properties")) {
-		try (InputStream inputStream = DataStreamJob.class.getClassLoader().getResourceAsStream("flink.properties")) {
-			properties.load(inputStream);
-
-		} catch (IOException e) {
-			e.getMessage();
-		}
-		KAFKA_BOOTSTRAP_SERVERS = properties.getProperty("KAFKA_BOOTSTRAP_SERVERS");
-		CONSUMER_TOPIC = properties.getProperty("CONSUMER_TOPIC");
-	}
 
 	public static void main(String[] args) throws Exception {
-		// Sets up the execution environment, which is the main entry point
-		// to building Flink applications.
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-		env.setParallelism(8);
+		// env.setParallelism(8);
 		env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
 			2, // Number of restart attempts
 			Time.seconds(1L) // Delay between restarts
 		));
 
-		KafkaSource<String> source = KafkaSource.<String>builder()
-			.setBootstrapServers(KAFKA_BOOTSTRAP_SERVERS)
-			.setTopics(CONSUMER_TOPIC)
-			.setGroupId("my-group")
-			.setStartingOffsets(OffsetsInitializer.earliest())
-			.setValueOnlyDeserializer(new SimpleStringSchema())
-			.build();
+		loadProperties();
+
+		KafkaSource<String> source = createKafkaSource();
 		
 		// Data generator
-		dataGenerator(env);
+		DataGenerator dataGenerator = new DataGenerator(KAFKA_BOOTSTRAP_SERVERS);
+		String producerTopic = CONSUMER_TOPIC;
+		dataGenerator.generateData(producerTopic);
 
 		DataStream<String> streamSource = env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source");
 		DataStream<Product> products = streamSource.map(new JsonToProductMapper());
@@ -116,58 +98,24 @@ public class DataStreamJob {
 		env.execute("Flink Data Generation");
 	}
 
-	private static void dataGenerator(StreamExecutionEnvironment env) {
-		Properties props = new Properties();
-
-		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_BOOTSTRAP_SERVERS);
-		props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-
-		KafkaProducer<String, String> producer = new KafkaProducer<>(props);
-
-		long startTime = System.currentTimeMillis();
-		
-		int batchSize = 10;
-		for (int i = 1; i <= batchSize; i++) {
-			String recordValue = "{\"id\": " + i + ", \"name\": \"Apple\", \"price\": 0.85}";
-			ProducerRecord<String, String> record = new ProducerRecord<>(CONSUMER_TOPIC, recordValue);
-			producer.send(record, new Callback() {
-				@Override
-				public void onCompletion(RecordMetadata metadata, Exception e) {
-					if (e != null) {
-						e.getMessage();
-					} else {
-						System.out.println("Produced record: " + recordValue);
-					}
-				}
-			});
+	private static void loadProperties() {
+		Properties properties = new Properties();
+		try (InputStream inputStream = DataStreamJob.class.getClassLoader().getResourceAsStream("flink.properties")) {
+			properties.load(inputStream);
+		} catch (IOException e) {
+			e.getMessage();
 		}
-		
-		long endTime = System.currentTimeMillis();
-		long elapsedTime = endTime - startTime;
-		String recordValue = "{\"id\": " + 0 + ", \"name\": \"Apple\", \"price\":" + elapsedTime + "}";
-		ProducerRecord<String, String> record = new ProducerRecord<>(CONSUMER_TOPIC, recordValue);
-		producer.send(record, new Callback() {
-			@Override
-			public void onCompletion(RecordMetadata metadata, Exception e) {
-				if (e != null) {
-					e.getMessage();
-				} else {
-					System.out.println("Produced record: " + recordValue);
-				}
-			}
-		});
-
-		// Print the elapsed time to the task manager's stdout
-		
-		
-		producer.flush();
-		producer.close();
+		KAFKA_BOOTSTRAP_SERVERS = properties.getProperty("KAFKA_BOOTSTRAP_SERVERS");
+        CONSUMER_TOPIC = properties.getProperty("CONSUMER_TOPIC");
 	}
 
-	private static String formatElapsedTime(long elapsedTime) {
-		long seconds = elapsedTime / 1000;
-		long milliseconds = elapsedTime % 1000;
-		return String.format("%d.%03d seconds", seconds, milliseconds);
+	private static KafkaSource<String> createKafkaSource() {
+		return KafkaSource.<String>builder()
+				.setBootstrapServers(KAFKA_BOOTSTRAP_SERVERS)
+				.setTopics(CONSUMER_TOPIC)
+				.setGroupId("my-group")
+				.setStartingOffsets(OffsetsInitializer.earliest())
+				.setValueOnlyDeserializer(new SimpleStringSchema())
+				.build();
 	}
 }
