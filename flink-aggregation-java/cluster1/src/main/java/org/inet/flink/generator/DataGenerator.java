@@ -22,7 +22,7 @@ public class DataGenerator {
     public void generateData(String producerTopic) {
         long startTime = System.currentTimeMillis();
 
-        int batchSize = 10;
+        int batchSize = 10000000;
         for (int i = 1; i <= batchSize; i++) {
             String recordValue = toJson(i);
             sendMessage(producerTopic, recordValue);

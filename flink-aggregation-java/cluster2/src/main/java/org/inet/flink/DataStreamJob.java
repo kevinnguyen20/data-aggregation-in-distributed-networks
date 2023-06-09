@@ -39,7 +39,7 @@ import org.inet.flink.generator.DataGenerator;
 public class DataStreamJob {
 
 	private static String KAFKA_BOOTSTRAP_SERVERS;
-	private static String CONSUMER_TOPIC;
+	private static String CONSUMER_TOPIC_2;
 
 	public static void main(String[] args) throws Exception {
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -56,7 +56,7 @@ public class DataStreamJob {
 		
 		// Data generator
 		DataGenerator dataGenerator = new DataGenerator(KAFKA_BOOTSTRAP_SERVERS);
-		String producerTopic = CONSUMER_TOPIC;
+		String producerTopic = CONSUMER_TOPIC_2;
 		dataGenerator.generateData(producerTopic);
 
 		DataStream<String> streamSource = env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source");
@@ -99,13 +99,13 @@ public class DataStreamJob {
 			e.getMessage();
 		}
 		KAFKA_BOOTSTRAP_SERVERS = properties.getProperty("KAFKA_BOOTSTRAP_SERVERS");
-        CONSUMER_TOPIC = properties.getProperty("CONSUMER_TOPIC");
+        CONSUMER_TOPIC_2 = properties.getProperty("CONSUMER_TOPIC_2");
 	}
 
 	private static KafkaSource<String> createKafkaSource() {
 		return KafkaSource.<String>builder()
 				.setBootstrapServers(KAFKA_BOOTSTRAP_SERVERS)
-				.setTopics(CONSUMER_TOPIC)
+				.setTopics(CONSUMER_TOPIC_2)
 				.setGroupId("my-group")
 				.setStartingOffsets(OffsetsInitializer.earliest())
 				.setValueOnlyDeserializer(new SimpleStringSchema())
