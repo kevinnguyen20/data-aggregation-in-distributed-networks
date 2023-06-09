@@ -1,3 +1,4 @@
 .vscode
 config.sh
-flink-aggregation-java/target
+flink-aggregation-java/cluster1/target
+flink-aggregation-java/cluster2/target
