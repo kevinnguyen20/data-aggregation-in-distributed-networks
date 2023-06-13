@@ -32,6 +32,18 @@ import java.util.List;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 
+import org.apache.flink.streaming.api.watermark.Watermark;
+import org.apache.flink.util.NetUtils;
+
+import org.apache.commons.io.IOUtils;
+
+import java.io.EOFException;
+import java.io.OutputStreamWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+import org.apache.flink.streaming.api.functions.source.SocketTextStreamFunction;
+
 import org.inet.flink.model.Product;
 import org.inet.flink.mapper.JsonToProductMapper;
 import org.inet.flink.generator.DataGenerator;
@@ -62,6 +74,17 @@ public class DataStreamJob {
 		DataStream<String> streamSource = env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source");
 		DataStream<Product> products = streamSource.map(new JsonToProductMapper());
 
+		DataStream<String> result = null;
+		try {
+			// SocketTextStreamFunction socketSource = new SocketTextStreamFunction("localhost", 9981, "\n", 0);
+			// result = env.socketTextStream("localhost", 9981, "\n", 0);
+			// result = env.addSource(socketSource,
+			// WatermarkStrategy.noWatermarks(), "Cluster Source");
+			result = env.socketTextStream("localhost", 9981);
+		} catch (Throwable t) {
+            t.getMessage();
+        }
+
 		// String hostname = "localhost";
 		// int port = 7777;
 		// DataStream<String> socketSource = env.socketTextStream(hostname, port);
@@ -87,7 +110,8 @@ public class DataStreamJob {
 		 *
 		 */
 
-		products.print();
+		// products.print();
+		result.print();
 		env.execute("Flink Data Generation");
 	}
 

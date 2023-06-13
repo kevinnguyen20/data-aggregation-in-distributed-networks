@@ -29,8 +29,27 @@ import java.util.Properties;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.sink.SocketClientSink;
 import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
+import org.apache.flink.streaming.api.functions.sink.SinkContextUtil;
+
+import org.apache.flink.api.common.serialization.SerializationSchema;
+import org.apache.flink.configuration.ConfigConstants;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.util.NetUtils;
+
+import org.apache.commons.io.IOUtils;
+
+// import java.io.BufferedReader;
+// import java.io.IOException;
+// import java.io.InputStreamReader;
+// import java.net.BindException;
+// import java.net.ServerSocket;
+// import java.net.Socket;
+import java.net.*;
+import java.io.*;
+
+import org.apache.flink.streaming.api.datastream.DataStreamSource;
 
 import org.inet.flink.model.Product;
 import org.inet.flink.mapper.JsonToProductMapper;
@@ -62,10 +81,59 @@ public class DataStreamJob {
 		DataStream<String> streamSource = env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source");
 		DataStream<Product> products = streamSource.map(new JsonToProductMapper());
 
-		// String hostname = "localhost";
-		// int port = 7777;
-		// DataStream<String> socketSource = env.socketTextStream(hostname, port);
-		// socketSource.addSink(new PrintSinkFunction<>());
+		// SocketClientSink<String> socketSink = sendDataViaSocket();
+		SerializationSchema<String> simpleSchema =
+            new SerializationSchema<String>() {
+                @Override
+                public byte[] serialize(String element) {
+                    return element.getBytes(ConfigConstants.DEFAULT_CHARSET);
+                }
+            };
+
+		// DataStream<String> sinkSocket = null;
+
+		// try {
+		// 	SocketClientSink<String> simpleSink =
+		// 			new SocketClientSink<>("localhost", 9981, simpleSchema, 0);
+		// 	simpleSink.open(new Configuration());
+		// 	simpleSink.invoke("Hello World" + '\n', SinkContextUtil.forTimestamp(0));
+		// 	// simpleSink.close();
+		// 	sinkSocket = env.addSink(simpleSink, WatermarkStrategy.noWatermarks(), "Hello World Source");
+        // } catch (Throwable t) {
+        //     t.getMessage();
+        // }
+
+		ServerSocket serverSocket = new ServerSocket(9981);
+		try {
+
+            while (true) {
+                Socket echoSocket = serverSocket.accept();
+                PrintWriter out =
+                        new PrintWriter(echoSocket.getOutputStream(), true);
+                BufferedReader in =
+                        new BufferedReader(
+                                new InputStreamReader(echoSocket.getInputStream()));
+
+                out.println("Hello Amazing");
+                // do whatever logic you want.
+
+                in.close();
+                out.close();
+                echoSocket.close();
+
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        finally {
+            try {
+                serverSocket.close();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
 		/*
 		 * Here, you can start creating your execution plan for Flink.
@@ -111,4 +179,18 @@ public class DataStreamJob {
 				.setValueOnlyDeserializer(new SimpleStringSchema())
 				.build();
 	}
+
+	// private static SocketClientSink<String> sendDataViaSocket() {
+	// 	return new SocketClientSink<>("localhost", 7777,
+	// 		new SocketWriter<String>() {
+	// 			@Override
+	// 			public void write(String value, OutputStream outputStream) throws IOException {
+	// 				outputStream.write((value + "\n").getBytes());
+	// 			}
+
+	// 			@Override
+	// 			public void close() throws IOException {}
+	// 		});
+
+	// }
 }
