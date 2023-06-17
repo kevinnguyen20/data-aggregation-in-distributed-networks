@@ -41,10 +41,10 @@ if [[ "$1" = "start" ]]; then
     "$FLINK_HOME/bin/flink" run "$FLINK_JOB_DIRECTORY/cluster1-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
     "$FLINK_HOME_2/bin/flink" run "$FLINK_JOB_DIRECTORY_2/cluster2-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
 
-    # sleep 5
+    sleep 5
 
-    # xdg-open "http://localhost:8081" > /dev/null 2>&1 &
-    # xdg-open "http://localhost:8091" > /dev/null 2>&1 &
+    xdg-open "http://localhost:8081" > /dev/null 2>&1 &
+    xdg-open "http://localhost:8091" > /dev/null 2>&1 &
 fi
 
 if [[ "$1" = "stop" ]]; then
