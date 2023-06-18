@@ -18,7 +18,7 @@ taskmanager.rpc.port: 42501-42520" "$configFile"
 }
 
 copyAndRenameFile() {
-    if [[ ! -f "$FLINK_HOME_2" ]]; then
+    if [[ ! -d "$FLINK_HOME_2" ]]; then
         cp -r "$FLINK_HOME" "$FLINK_HOME_2"
         adjustConfigForSecondCluster
     fi
