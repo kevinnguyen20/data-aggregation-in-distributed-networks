@@ -1,0 +1,9 @@
+export FLINK_HOME=
+export FLINK_HOME_2=
+export FLINK_JOB_DIRECTORY=
+export FLINK_JOB_DIRECTORY_2=
+export KAFKA_HOME=
+export PROJECT_HOME=
+export KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+export CONSUMER_TOPIC=flink-kafka-topic
+export CONSUMER_TOPIC_2=flink-kafka-topic-2

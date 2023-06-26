@@ -68,8 +68,7 @@ public class DataStreamJob {
 		
 		// Data generator
 		DataGenerator dataGenerator = new DataGenerator(KAFKA_BOOTSTRAP_SERVERS);
-		String producerTopic = CONSUMER_TOPIC_2;
-		dataGenerator.generateData(producerTopic);
+		dataGenerator.generateData(CONSUMER_TOPIC_2);
 
 		DataStream<String> streamSource = env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source");
 		DataStream<Product> products = streamSource.map(new JsonToProductMapper());
