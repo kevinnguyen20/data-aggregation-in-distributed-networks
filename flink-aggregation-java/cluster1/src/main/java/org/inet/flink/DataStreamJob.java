@@ -75,15 +75,6 @@ public class DataStreamJob {
 		DataStream<String> streamSource = env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source");
 		DataStream<Product> products = streamSource.map(new JsonToProductMapper());
 
-		// SocketClientSink<String> socketSink = sendDataViaSocket();
-		// SerializationSchema<String> simpleSchema =
-        //     new SerializationSchema<String>() {
-        //         @Override
-        //         public byte[] serialize(String element) {
-        //             return element.getBytes(ConfigConstants.DEFAULT_CHARSET);
-        //         }
-        //     };
-
 		// DataStream<String> sinkSocket = null;
 
 		// try {

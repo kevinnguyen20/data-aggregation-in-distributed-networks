@@ -111,6 +111,7 @@ public class DataStreamJob {
 
 		// products.print();
 		result.print();
+		products.addSink(new PrintSinkFunction<>());
 		env.execute("Flink Data Generation");
 	}
 
