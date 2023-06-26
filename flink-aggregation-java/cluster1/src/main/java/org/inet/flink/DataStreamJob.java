@@ -82,13 +82,13 @@ public class DataStreamJob {
 		DataStream<Product> products = streamSource.map(new JsonToProductMapper());
 
 		// SocketClientSink<String> socketSink = sendDataViaSocket();
-		SerializationSchema<String> simpleSchema =
-            new SerializationSchema<String>() {
-                @Override
-                public byte[] serialize(String element) {
-                    return element.getBytes(ConfigConstants.DEFAULT_CHARSET);
-                }
-            };
+		// SerializationSchema<String> simpleSchema =
+        //     new SerializationSchema<String>() {
+        //         @Override
+        //         public byte[] serialize(String element) {
+        //             return element.getBytes(ConfigConstants.DEFAULT_CHARSET);
+        //         }
+        //     };
 
 		// DataStream<String> sinkSocket = null;
 
@@ -103,37 +103,38 @@ public class DataStreamJob {
         //     t.getMessage();
         // }
 
-		ServerSocket serverSocket = new ServerSocket(9981);
-		try {
+		// Bug
+		// ServerSocket serverSocket = new ServerSocket(9981);
+		// try {
 
-            while (true) {
-                Socket echoSocket = serverSocket.accept();
-                PrintWriter out =
-                        new PrintWriter(echoSocket.getOutputStream(), true);
-                BufferedReader in =
-                        new BufferedReader(
-                                new InputStreamReader(echoSocket.getInputStream()));
+        //     while (true) {
+        //         Socket echoSocket = serverSocket.accept();
+        //         PrintWriter out =
+        //                 new PrintWriter(echoSocket.getOutputStream(), true);
+        //         BufferedReader in =
+        //                 new BufferedReader(
+        //                         new InputStreamReader(echoSocket.getInputStream()));
 
-                out.println("Hello Amazing");
-                // do whatever logic you want.
+        //         out.println("Hello Amazing");
+        //         // do whatever logic you want.
 
-                in.close();
-                out.close();
-                echoSocket.close();
+        //         in.close();
+        //         out.close();
+        //         echoSocket.close();
 
-            }
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        finally {
-            try {
-                serverSocket.close();
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        //     }
+        // }
+        // catch (IOException e) {
+        //     e.printStackTrace();
+        // }
+        // finally {
+        //     try {
+        //         serverSocket.close();
+        //     }
+        //     catch (IOException e) {
+        //         e.printStackTrace();
+        //     }
+        // }
 
 		/*
 		 * Here, you can start creating your execution plan for Flink.

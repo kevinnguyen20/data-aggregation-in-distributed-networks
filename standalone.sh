@@ -3,6 +3,7 @@
 # Read variables from config file
 source config.sh
 
+# Bug
 adjustConfigForSecondCluster() {
     sed -i '1s/:[0-9]\{4\}$/:8091/' "$FLINK_HOME_2/conf/masters"
 
@@ -33,9 +34,9 @@ if [[ "$1" = "start" ]]; then
     ./kafka-service.sh start
 
     # Start the Flink cluster
-    "$FLINK_HOME/bin/start-cluster.sh" > /dev/null 2>&1 &
+    "$FLINK_HOME/bin/start-cluster.sh" > /dev/null 2>&1 & # Start the first cluster
     copyAndRenameFile
-    "$FLINK_HOME_2/bin/start-cluster.sh" > /dev/null 2>&1 &
+    "$FLINK_HOME_2/bin/start-cluster.sh" > /dev/null 2>&1 & # Start the second cluster
 
     # Submit the job to the Flink cluster
     "$FLINK_HOME/bin/flink" run "$FLINK_JOB_DIRECTORY/cluster1-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
@@ -49,7 +50,7 @@ fi
 
 if [[ "$1" = "stop" ]]; then
     # Stop xdg-open
-    pkill -f "xdg-open"
+    # pkill -f "xdg-open"
 
     # Stop the Flink cluster
     "$FLINK_HOME/bin/stop-cluster.sh"
