@@ -2,7 +2,7 @@
 
 source config.sh
 
-cd "$KAFKA_HOME"
+cd "$KAFKA_HOME" || exit
 
 if [[ "$1" = "start" ]]; then
     # Start Zookeeper
@@ -14,6 +14,7 @@ if [[ "$1" = "start" ]]; then
     # Create a topic
     bin/kafka-topics.sh --create --topic "$CONSUMER_TOPIC" --bootstrap-server "$KAFKA_BOOTSTRAP_SERVERS" > /dev/null 2>&1 &
     bin/kafka-topics.sh --create --topic "$CONSUMER_TOPIC_2" --bootstrap-server "$KAFKA_BOOTSTRAP_SERVERS" > /dev/null 2>&1 &
+    bin/kafka-topics.sh --create --topic "$CONSUMER_TOPIC_CLUSTERS" --bootstrap-server "$KAFKA_BOOTSTRAP_SERVERS" > /dev/null 2>&1 &
 fi
 
 if [[ "$1" = "stop" ]]; then

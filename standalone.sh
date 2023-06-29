@@ -3,7 +3,6 @@
 # Read variables from config file
 source config.sh
 
-# Bug
 adjustConfigForSecondCluster() {
     sed -i '1s/:[0-9]\{4\}$/:8091/' "$FLINK_HOME_2/conf/masters"
 
@@ -26,11 +25,11 @@ copyAndRenameFile() {
 }
 
 if [[ "$1" = "start" ]]; then
-    cd "$PROJECT_HOME/flink-aggregation-java"
+    cd "$PROJECT_HOME/flink-aggregation-java" || exit
     mvn clean package
 
     # Start Zookeeper and the Kafka broker
-    cd "$PROJECT_HOME"
+    cd "$PROJECT_HOME" || exit
     ./kafka-service.sh start
 
     # Start the Flink cluster
@@ -42,10 +41,11 @@ if [[ "$1" = "start" ]]; then
     "$FLINK_HOME/bin/flink" run "$FLINK_JOB_DIRECTORY/cluster1-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
     "$FLINK_HOME_2/bin/flink" run "$FLINK_JOB_DIRECTORY_2/cluster2-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
 
-    sleep 5
-
-    xdg-open "http://localhost:8081" > /dev/null 2>&1 &
-    xdg-open "http://localhost:8091" > /dev/null 2>&1 &
+# Uncomment if you are too lazy to open the links by yourself
+#    sleep 5
+#
+#    xdg-open "http://localhost:8081" > /dev/null 2>&1 &
+#    xdg-open "http://localhost:8091" > /dev/null 2>&1 &
 fi
 
 if [[ "$1" = "stop" ]]; then

@@ -7,3 +7,4 @@ export PROJECT_HOME=
 export KAFKA_BOOTSTRAP_SERVERS=localhost:9092
 export CONSUMER_TOPIC=flink-kafka-topic
 export CONSUMER_TOPIC_2=flink-kafka-topic-2
+export CONSUMER_TOPIC_CLUSTERS=flink-kafka-topic-clusters
