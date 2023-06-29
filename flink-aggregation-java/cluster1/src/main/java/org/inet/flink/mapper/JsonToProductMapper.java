@@ -11,7 +11,7 @@ public class JsonToProductMapper implements MapFunction<String, Product> {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public Product map(String json) throws Exception {
+    public Product map(String json) {
         try {
             return objectMapper.readValue(json, Product.class);
         } catch (IOException e) {
