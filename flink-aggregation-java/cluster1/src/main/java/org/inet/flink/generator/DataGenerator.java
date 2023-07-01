@@ -3,10 +3,13 @@ package org.inet.flink.generator;
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.StringSerializer;
 
+import java.util.List;
+import java.util.Random;
 import java.util.Properties;
 
 public class DataGenerator {
     private final KafkaProducer<String, String> producer;
+    private final List<String> productNames;
 
     /**
      * Constructor for the data generator.
@@ -19,6 +22,7 @@ public class DataGenerator {
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 
         producer = new KafkaProducer<>(props);
+        productNames = List.of("Apple", "Banana", "Lemon", "Cherry", "Melon", "Peach", "Grapefruit");
     }
 
     // TODO Make it an unbounded data generation
@@ -27,18 +31,11 @@ public class DataGenerator {
         long startTime = System.currentTimeMillis();
 
         int batchSize = 10;
-        int i = 0;
+        Random random = new Random();
 
-        while (true) {
-            if (i % batchSize == 0) {
-                producer.flush();
-                if (i == 200) {
-                    break;
-                }
-            }
-            String recordValue = toJson(i);
+        for (int i = 1; i <= batchSize; i++) {
+            String recordValue = toJson(i, getRandomProductName(random));
             sendMessage(producerTopic, recordValue);
-            i++;
         }
 
         // This could be used for debugging purposes
@@ -52,12 +49,12 @@ public class DataGenerator {
 		producer.close();
     }
 
-    private static String toJson(int id) {
-        return "{\"id\": " + id + ", \"name\": \"Apple\", \"price\": 7.77}";
+    private static String toJson(int id, String productName) {
+        return "{\"id\": " + id + ", \"name\": \"" + productName + "\", \"price\": 7.77}";
     }
 
     private static String toJson(long elapsedTime) {
-        return "{\"id\": " + 999 + ", \"name\": \"Apple\", \"price\":" + elapsedTime + "}";
+        return "{\"id\": " + 0 + ", \"name\": \"Apple\", \"price\":" + elapsedTime + "}";
     }
 
     /**
@@ -75,5 +72,9 @@ public class DataGenerator {
                 }
             }
         });
+    }
+
+    private String getRandomProductName(Random random) {
+        return productNames.get(random.nextInt(productNames.size()));
     }
 }
