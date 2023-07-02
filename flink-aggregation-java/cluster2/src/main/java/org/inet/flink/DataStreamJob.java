@@ -43,7 +43,6 @@ public class DataStreamJob {
 		DataStream<String> streamSource = env.fromSource(dataGeneratorSource, WatermarkStrategy.noWatermarks(), "Kafka Data Generator");
 
 		// Maps strings to product type
-		// TODO do some data processing
 		DataStream<Product> products = streamSource
             .map(new JsonToProductMapper())
             .filter(product -> product.getName().equals("Lemon"));
@@ -55,10 +54,6 @@ public class DataStreamJob {
 
 		products.print();
 		price.print();
-        // Aggregates prices within a 5-second window
-		// DataStream<Double> prices = products
-		// 	.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(5)))
-		// 	.sum("price");
 
 		// Starts receiving data from first cluster
 		KafkaSource<String> firstClusterSource = createKafkaSource(CLUSTER_COMMUNICATION_TOPIC, "data-between-clusters");

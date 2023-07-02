@@ -48,7 +48,6 @@ public class DataStreamJob {
 		DataStream<String> streamSource = env.fromSource(dataGeneratorSource, WatermarkStrategy.noWatermarks(), "Kafka Data Generator");
 
 		// Maps strings to product type
-		// TODO do some data processing
 		DataStream<Product> products = streamSource
 			.map(new JsonToProductMapper())
 			.filter(product -> product.getName().equals("Lemon"));
