@@ -19,6 +19,7 @@ import java.util.Properties;
 
 import org.inet.flink.model.Product;
 import org.inet.flink.mapper.JsonToProductMapper;
+import org.inet.flink.mapper.ProductToJsonMapper;
 import org.inet.flink.generator.DataGenerator;
 
 public class DataStreamJob {
@@ -48,11 +49,17 @@ public class DataStreamJob {
 
 		// Maps strings to product type
 		// TODO do some data processing
-		DataStream<Product> products = streamSource.map(new JsonToProductMapper());
+		DataStream<Product> products = streamSource
+			.map(new JsonToProductMapper())
+			.filter(product -> product.getName().equals("Lemon"));
+			
 		products.print();
 
+		DataStream<String> streamSink = products
+			.map(new ProductToJsonMapper());
+
 		// Starts transmitting data to the other cluster
-		createLocalKafkaSink(streamSource);
+		createLocalKafkaSink(streamSink);
 
 		env.execute("Flink Data Generation");
 	}

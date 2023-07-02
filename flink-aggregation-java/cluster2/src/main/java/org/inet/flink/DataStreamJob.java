@@ -3,11 +3,12 @@ package org.inet.flink;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
-import org.apache.flink.api.common.time.Time;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
+import org.apache.flink.streaming.api.windowing.time.Time;
 import org.inet.flink.generator.DataGenerator;
 import org.inet.flink.mapper.JsonToProductMapper;
 import org.inet.flink.model.Product;
@@ -27,7 +28,7 @@ public class DataStreamJob {
 
 		env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
 			2, // Number of restart attempts
-			Time.seconds(1L) // Delay between restarts
+			1000L // Delay between restarts
 		));
 
 		// Assigns values to the field variables
@@ -43,13 +44,36 @@ public class DataStreamJob {
 
 		// Maps strings to product type
 		// TODO do some data processing
-		DataStream<Product> products = streamSource.map(new JsonToProductMapper());
+		DataStream<Product> products = streamSource
+            .map(new JsonToProductMapper())
+            .filter(product -> product.getName().equals("Lemon"));
+
+		DataStream<Double> price = products
+			.map(Product::getPrice)
+			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(10)))
+			.sum(0);
+
 		products.print();
+		price.print();
+        // Aggregates prices within a 5-second window
+		// DataStream<Double> prices = products
+		// 	.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(5)))
+		// 	.sum("price");
 
 		// Starts receiving data from first cluster
 		KafkaSource<String> firstClusterSource = createKafkaSource(CLUSTER_COMMUNICATION_TOPIC, "data-between-clusters");
 		DataStream<String> dataFromFirstCluster = env.fromSource(firstClusterSource, WatermarkStrategy.noWatermarks(), "First Cluster Data");
-		dataFromFirstCluster.print();
+
+		DataStream<Product> productsFromFirstCluster = dataFromFirstCluster
+			.map(new JsonToProductMapper());
+
+		DataStream<Double> priceForProductsFromFirstCluster = productsFromFirstCluster
+			.map(Product::getPrice)
+			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(10)))
+			.sum(0);
+
+		productsFromFirstCluster.print();
+		priceForProductsFromFirstCluster.print();
 
 		env.execute("Flink Data Aggregation");
 	}

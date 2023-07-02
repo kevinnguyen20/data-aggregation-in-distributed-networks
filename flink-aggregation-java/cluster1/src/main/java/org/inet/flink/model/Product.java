@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 // {"id": 1, "name": "Apple", "price": 0.85}
 
 public class Product {
@@ -70,5 +73,10 @@ public class Product {
         prices.add("0.80");
         prices.add("0.55");
         return prices;
+    }
+
+    public String toJson() throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.writeValueAsString(this);
     }
 }

@@ -30,11 +30,11 @@ public class DataGenerator {
     public void generateData(String producerTopic) throws InterruptedException {
         long startTime = System.currentTimeMillis();
 
-        int batchSize = 10;
+        int batchSize = 100;
         Random random = new Random();
 
         for (int i = 1; i <= batchSize; i++) {
-            String recordValue = toJson(i, getRandomProductName(random));
+            String recordValue = toJson(i, getRandomProductName(random), assignRandomPrice(random));
             sendMessage(producerTopic, recordValue);
         }
 
@@ -49,8 +49,9 @@ public class DataGenerator {
 		producer.close();
     }
 
-    private static String toJson(int id, String productName) {
-        return "{\"id\": " + id + ", \"name\": \"" + productName + "\", \"price\": 7.77}";
+    private static String toJson(int id, String productName, double price) {
+        String formattedPrice = String.format("%.2f", price);
+        return "{\"id\": " + id + ", \"name\": \"" + productName + "\", \"price\": " + formattedPrice + "}";
     }
 
     private static String toJson(long elapsedTime) {
@@ -76,5 +77,9 @@ public class DataGenerator {
 
     private String getRandomProductName(Random random) {
         return productNames.get(random.nextInt(productNames.size()));
+    }
+
+    private double assignRandomPrice(Random random) {
+        return 0.5 + random.nextDouble() * (1.8 - 0.5);
     }
 }
