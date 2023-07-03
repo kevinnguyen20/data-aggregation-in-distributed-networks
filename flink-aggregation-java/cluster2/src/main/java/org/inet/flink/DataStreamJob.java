@@ -45,7 +45,7 @@ public class DataStreamJob {
 		// Maps strings to product type
 		DataStream<Product> products = streamSource
             .map(new JsonToProductMapper())
-            .filter(product -> product.getName().equals("Lemon"));
+            .filter(product -> product.getName().equals("Apple"));
 
 		DataStream<Double> price = products
 			.map(Product::getPrice)
