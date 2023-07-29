@@ -3,6 +3,7 @@ package org.inet.flink.generator;
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.StringSerializer;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.Properties;
@@ -22,7 +23,7 @@ public class DataGenerator {
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 
         producer = new KafkaProducer<>(props);
-        productNames = List.of("Apple", "Banana", "Lemon", "Cherry", "Melon", "Peach", "Grapefruit");
+        productNames = Arrays.asList("Apple", "Banana", "Lemon", "Cherry", "Melon", "Peach", "Grapefruit");
     }
 
     // TODO Make it an unbounded data generation
@@ -55,7 +56,7 @@ public class DataGenerator {
     }
 
     private static String toJson(long elapsedTime) {
-        return "{\"id\": " + 0 + ", \"name\": \"Apple\", \"price\":" + elapsedTime + "}";
+        return "{\"id\": " + 0 + ", \"name\": \"Elapsed time\", \"price\":" + elapsedTime + "}";
     }
 
     /**
