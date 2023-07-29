@@ -35,8 +35,8 @@ public class DataStreamJob {
 		loadProperties();
 
 		// Starts data generation
-		DataGenerator dataGenerator = new DataGenerator(KAFKA_BOOTSTRAP_SERVERS);
-		dataGenerator.generateData(CONSUMER_TOPIC_2);
+		// DataGenerator dataGenerator = new DataGenerator(KAFKA_BOOTSTRAP_SERVERS);
+		// dataGenerator.generateData(CONSUMER_TOPIC_2);
 
 		// Receives data from data generator
 		KafkaSource<String> dataGeneratorSource = createKafkaSource(CONSUMER_TOPIC_2, "data-generator");

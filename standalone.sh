@@ -24,6 +24,16 @@ copyAndRenameFile() {
     fi
 }
 
+startDataGenerators() {
+    python3 ./datagen.py &
+    python3 ./datagen2.py &
+}
+
+stopDataGenerators() {
+    pkill -f "python3 ./datagen.py"
+    pkill -f "python3 ./datagen2.py"
+}
+
 if [[ "$1" = "start" ]]; then
     cd "$PROJECT_HOME/flink-aggregation-java" || exit
     mvn clean package
@@ -31,6 +41,11 @@ if [[ "$1" = "start" ]]; then
     # Start Zookeeper and the Kafka broker
     cd "$PROJECT_HOME" || exit
     ./kafka-service.sh start
+    # source ./delay.sh start
+
+    # Start the data generators
+    sleep 2
+    startDataGenerators
 
     # Start the Flink cluster
     "$FLINK_HOME/bin/start-cluster.sh" > /dev/null 2>&1 & # Start the first cluster
@@ -56,6 +71,10 @@ if [[ "$1" = "stop" ]]; then
     "$FLINK_HOME/bin/stop-cluster.sh"
     "$FLINK_HOME_2/bin/stop-cluster.sh"
 
+    # Stop the data generators
+    stopDataGenerators
+
     # Stop Zookeeper and the Kafka broker
+    # source ./delay.sh stop
     ./kafka-service.sh stop
 fi
