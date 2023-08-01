@@ -35,17 +35,19 @@ public class DataStreamJob {
 		loadProperties();
 
 		// Starts data generation
-		// DataGenerator dataGenerator = new DataGenerator(KAFKA_BOOTSTRAP_SERVERS);
-		// dataGenerator.generateData(CONSUMER_TOPIC_2);
+		DataGenerator dataGenerator = new DataGenerator(KAFKA_BOOTSTRAP_SERVERS);
+		dataGenerator.generateData(CONSUMER_TOPIC_2);
 
 		// Receives data from data generator
 		KafkaSource<String> dataGeneratorSource = createKafkaSource(CONSUMER_TOPIC_2, "data-generator");
-		DataStream<String> streamSource = env.fromSource(dataGeneratorSource, WatermarkStrategy.noWatermarks(), "Kafka Data Generator");
+		DataStream<String> streamSource = env.fromSource(dataGeneratorSource,
+		WatermarkStrategy.noWatermarks(), "Kafka Data Generator");
+		// DataStream<String> streamSource = env.readTextFile("../../../../../../../../records/output2.txt");
 
 		// Maps strings to product type
 		DataStream<Product> products = streamSource
-            .map(new JsonToProductMapper())
-            .filter(product -> product.getName().equals("Apple"));
+            .map(new JsonToProductMapper());
+            // .filter(product -> product.getName().equals("Apple"));
 
 		DataStream<Double> price = products
 			.map(Product::getPrice)
@@ -85,12 +87,6 @@ public class DataStreamJob {
 		CLUSTER_COMMUNICATION_TOPIC = properties.getProperty("CLUSTER_COMMUNICATION_TOPIC");
 	}
 
-	/**
-	 * Creates a local instance of Kafka source.
-	 * @param topic a topic from which to receive data
-	 * @param groupId id of a group (not important for our task)
-	 * @return a Kafka source
-	 */
 	private static KafkaSource<String> createKafkaSource(String topic, String groupId) {
 		return KafkaSource.<String>builder()
 				.setBootstrapServers(KAFKA_BOOTSTRAP_SERVERS)

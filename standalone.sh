@@ -25,8 +25,8 @@ copyAndRenameFile() {
 }
 
 startDataGenerators() {
-    python3 ./datagen.py &
-    python3 ./datagen2.py &
+    python3 ./data-generators/datagen.py &
+    python3 ./data-generators/datagen2.py &
 }
 
 stopDataGenerators() {

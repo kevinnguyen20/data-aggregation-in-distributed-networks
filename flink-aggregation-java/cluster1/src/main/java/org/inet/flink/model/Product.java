@@ -2,14 +2,11 @@ package org.inet.flink.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Product {
     private Long id;
     private String name;
     private Double price;
-
 
     public Product(Long id, String name, Double price) {
         this.id = id;

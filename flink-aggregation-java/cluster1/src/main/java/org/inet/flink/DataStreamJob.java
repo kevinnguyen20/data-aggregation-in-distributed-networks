@@ -39,18 +39,20 @@ public class DataStreamJob {
 		// Assigns values to the field variables
 		loadProperties();
 		
-		// Starts data generation
-		// DataGenerator dataGenerator = new DataGenerator(KAFKA_BOOTSTRAP_SERVERS);
-		// dataGenerator.generateData(CONSUMER_TOPIC);
+		// // Starts data generation
+		DataGenerator dataGenerator = new DataGenerator(KAFKA_BOOTSTRAP_SERVERS);
+		dataGenerator.generateData(CONSUMER_TOPIC);
 
 		// Receives data from data generator
 		KafkaSource<String> dataGeneratorSource = createKafkaSource(CONSUMER_TOPIC);
-		DataStream<String> streamSource = env.fromSource(dataGeneratorSource, WatermarkStrategy.noWatermarks(), "Kafka Data Generator");
+		DataStream<String> streamSource = env.fromSource(dataGeneratorSource,
+		WatermarkStrategy.noWatermarks(), "Kafka Data Generator");
+		// DataStream<String> streamSource = env.readTextFile("../../../../../../../../records/output.txt");
 
 		// Maps strings to product type
 		DataStream<Product> products = streamSource
-			.map(new JsonToProductMapper())
-			.filter(product -> product.getName().equals("Lemon"));
+			.map(new JsonToProductMapper());
+			// .filter(product -> product.getName().equals("Lemon"));
 			
 		products.print();
 
@@ -75,11 +77,6 @@ public class DataStreamJob {
 		CLUSTER_COMMUNICATION_TOPIC = properties.getProperty("CLUSTER_COMMUNICATION_TOPIC");
 	}
 
-	/**
-	 * Creates a local instance of Kafka source.
-	 * @param topic a topic from which to receive data
-	 * @return a Kafka source
-	 */
 	private static KafkaSource<String> createKafkaSource(String topic) {
 		return KafkaSource.<String>builder()
 				.setBootstrapServers(KAFKA_BOOTSTRAP_SERVERS)
@@ -90,12 +87,7 @@ public class DataStreamJob {
 				.build();
 	}
 
-	/**
-	 * Creates a local instance of Kafka sink and push data through it.
-	 * @param productDataStream a stream which should be transmitted through the sink
-	 */
 	private static void createLocalKafkaSink(DataStream<String> productDataStream) {
-		// TODO make it work with type Product to send the processed data
 		KafkaSink<String> sink = KafkaSink.<String>builder()
 				.setBootstrapServers(KAFKA_BOOTSTRAP_SERVERS)
 				.setRecordSerializer(KafkaRecordSerializationSchema.builder()
