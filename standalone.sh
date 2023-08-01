@@ -44,11 +44,12 @@ if [[ "$1" = "start" ]]; then
     # source ./delay.sh start
 
     # Start the data generators
-    sleep 2
-    startDataGenerators
+    # sleep 3
+    # startDataGenerators
 
     # Start the Flink cluster
     "$FLINK_HOME/bin/start-cluster.sh" > /dev/null 2>&1 & # Start the first cluster
+    sleep 3
     copyAndRenameFile
     "$FLINK_HOME_2/bin/start-cluster.sh" > /dev/null 2>&1 & # Start the second cluster
 
