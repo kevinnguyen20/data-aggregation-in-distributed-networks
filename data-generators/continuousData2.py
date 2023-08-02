@@ -58,6 +58,6 @@ if __name__ == '__main__':
         sys.exit(1)
 
     kafka_bootstrap_servers = 'localhost:9092'
-    producer_topic = 'flink-kafka-topic'
+    producer_topic = 'flink-kafka-topic-2'
 
     generate_data(kafka_bootstrap_servers, producer_topic, line_index)
