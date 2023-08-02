@@ -1,3 +1,4 @@
+Country, Domain name, minimum, average, maximum, mean deviation (ms)
 Germany, de-dofr.metercdn.net, 17.957, 18.385, 19.062, 0.484
 Netherlands, nl-hostzealot.metercdn.net, 17.732, 18.192, 18.699, 0.353
 United Kingdom, gb-ln.metercdn.net, 37.225, 37.503, 37.808, 0.188
