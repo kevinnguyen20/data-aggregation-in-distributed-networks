@@ -1,7 +1,9 @@
 import random
 import time
 import json
-from kafka import KafkaProducer
+import sys
+#from kafka import KafkaProducer #uncomment whatever works for you
+from kafka3 import KafkaProducer
 
 def generate_data(kafka_bootstrap_servers, producer_topic, total_records):
     producer = KafkaProducer(
@@ -28,9 +30,21 @@ def generate_data(kafka_bootstrap_servers, producer_topic, total_records):
     final_throughput = total_records / elapsed_time
     print(f"Final Throughput: {final_throughput:.2f} records/second")
 
+def validate_number_of_cluster(number_of_cluster):
+    if number_of_cluster < 1 or number_of_cluster > 2:
+        print("Invalid number of cluster. Please choose between 1 and 2")
+        sys.exit(1)
+
 if __name__ == '__main__':
+    try:
+        number_of_cluster = int(sys.argv[1])
+        validate_number_of_cluster(number_of_cluster)
+    except ValueError:
+        print("Invalid argument. Please provide an integer.")
+        sys.exit(1)
+
     kafka_bootstrap_servers = 'localhost:9092'
-    producer_topic = 'flink-kafka-topic'
+    producer_topic = 'flink-kafka-topic' if number_of_cluster == 1 else 'flink-kafka-topic-2'
     total_records = 10000000
 
     generate_data(kafka_bootstrap_servers, producer_topic, total_records)

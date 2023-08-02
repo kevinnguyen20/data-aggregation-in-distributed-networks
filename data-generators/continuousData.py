@@ -3,6 +3,7 @@ import json
 import time
 import sys
 import os
+#from kafka import KafkaProducer #uncomment whatever works for you
 from kafka3 import KafkaProducer
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -65,7 +66,7 @@ if __name__ == '__main__':
         line_index = int(sys.argv[2])
         lines = validate_line_index(line_index)
     except ValueError:
-        print("Invalid line index. Please provide an integer.")
+        print("Invalid argument. Please provide an integer.")
         sys.exit(1)
 
     kafka_bootstrap_servers = 'localhost:9092'
