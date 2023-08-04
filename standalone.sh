@@ -25,17 +25,17 @@ copyAndRenameFile() {
 }
 
 startDataGenerators() {
-    # python3 ./data-generators/datagen.py 1 &
-    # python3 ./data-generators/datagen2.py 2 &
-    python3 ./data-generators/continuousData.py 1 2 &
-    python3 ./data-generators/continuousData.py 2 3 &
+    python3 ./data-generators/datagen.py 1 &
+    python3 ./data-generators/datagen.py 2 &
+    # python3 ./data-generators/continuousData.py 1 2 &
+    # python3 ./data-generators/continuousData.py 2 3 &
 }
 
 stopDataGenerators() {
-    # pkill -f "python3 ./datagen.py"
-    # pkill -f "python3 ./datagen2.py"
-    pkill -f "./data-generators/continuousData.py"
-    pkill -f "./data-generators/continuousData2.py"
+    pkill -f "python3 ./data-generators/datagen.py 1"
+    pkill -f "python3 ./data-generators/datagen.py 2"
+    # pkill -f "./data-generators/continuousData.py 1 2"
+    # pkill -f "./data-generators/continuousData.py 2 3"
 }
 
 if [[ "$1" = "start" ]]; then
