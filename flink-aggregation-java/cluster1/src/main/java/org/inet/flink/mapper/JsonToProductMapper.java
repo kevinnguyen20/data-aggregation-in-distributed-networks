@@ -3,7 +3,6 @@ package org.inet.flink.mapper;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.inet.flink.model.Product;
-
 import java.io.IOException;
 
 public class JsonToProductMapper implements MapFunction<String, Product> {

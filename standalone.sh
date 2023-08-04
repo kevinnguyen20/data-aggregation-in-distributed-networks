@@ -25,13 +25,17 @@ copyAndRenameFile() {
 }
 
 startDataGenerators() {
-    python3 ./datagen.py &
-    python3 ./datagen2.py &
+    # python3 ./data-generators/datagen.py 1 &
+    # python3 ./data-generators/datagen2.py 2 &
+    python3 ./data-generators/continuousData.py 1 2 &
+    python3 ./data-generators/continuousData.py 2 3 &
 }
 
 stopDataGenerators() {
-    pkill -f "python3 ./datagen.py"
-    pkill -f "python3 ./datagen2.py"
+    # pkill -f "python3 ./datagen.py"
+    # pkill -f "python3 ./datagen2.py"
+    pkill -f "./data-generators/continuousData.py"
+    pkill -f "./data-generators/continuousData2.py"
 }
 
 if [[ "$1" = "start" ]]; then
@@ -44,26 +48,22 @@ if [[ "$1" = "start" ]]; then
     # source ./delay.sh start
 
     # Start the data generators
-    sleep 30
+    sleep 10
     startDataGenerators
-    echo "Generators were started"
 
-    # Start the first cluster
-    "$FLINK_HOME/bin/start-cluster.sh" > /dev/null 2>&1 &
-    echo "First cluster started"
+    # Start the Flink cluster
+    "$FLINK_HOME/bin/start-cluster.sh" > /dev/null 2>&1 & # Start the first cluster
+    sleep 3
     copyAndRenameFile
 
     # Start the second cluster
     "$FLINK_HOME_2/bin/start-cluster.sh" > /dev/null 2>&1 &
-    echo "Second cluster started"
 
     # Submit job to the first cluster
     "$FLINK_HOME/bin/flink" run "$FLINK_JOB_DIRECTORY/cluster1-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
-    echo "First job submitted"
 
     # Submit job to the second cluster
     "$FLINK_HOME_2/bin/flink" run "$FLINK_JOB_DIRECTORY_2/cluster2-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
-    echo "Second job submitted"
 
 # Uncomment if you are too lazy to open the links by yourself
 #    sleep 5

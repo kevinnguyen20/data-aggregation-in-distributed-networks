@@ -2,7 +2,6 @@ package org.inet.flink.generator;
 
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.StringSerializer;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -12,10 +11,6 @@ public class DataGenerator {
     private final KafkaProducer<String, String> producer;
     private final List<String> productNames;
 
-    /**
-     * Constructor for the data generator.
-     * @param kafkaBootstrapServers a server on which Kafka works
-     */
     public DataGenerator(String kafkaBootstrapServers) {
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapServers);
@@ -26,12 +21,10 @@ public class DataGenerator {
         productNames = Arrays.asList("Apple", "Banana", "Lemon", "Cherry", "Melon", "Peach", "Grapefruit");
     }
 
-    // TODO Make it an unbounded data generation
-    // TODO Think of more random records, maybe?
     public void generateData(String producerTopic) throws InterruptedException {
         long startTime = System.currentTimeMillis();
 
-        int batchSize = 100;
+        int batchSize = 10000000;
         Random random = new Random();
 
         for (int i = 1; i <= batchSize; i++) {
@@ -59,11 +52,6 @@ public class DataGenerator {
         return "{\"id\": " + 0 + ", \"name\": \"Elapsed time\", \"price\":" + elapsedTime + "}";
     }
 
-    /**
-     * Sends a record (custom value) to the specified topic.
-     * @param producerTopic a receiver topic
-     * @param recordValue the value that is sent
-     */
     private void sendMessage(String producerTopic, String recordValue) {
         ProducerRecord<String, String> record = new ProducerRecord<>(producerTopic, recordValue);
         producer.send(record, new Callback() {

@@ -2,29 +2,21 @@ package org.inet.flink.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-
-// {"id": 1, "name": "Apple", "price": 0.85}
 
 public class Product {
-    private final Long id;
+    private Long id;
     private String name;
     private Double price;
-    private static final Random RANDOM = new Random();
-
-    public Product() {
-        List<String> names = listOfNames();
-        List<String> prices = listOfPrices();
-
-        this.id = System.currentTimeMillis();
-        this.name = names.get(RANDOM.nextInt(names.size()));
-        this.price = Double.parseDouble(prices.get(RANDOM.nextInt(prices.size())));
-    }
 
     public Product(Long id, String name, Double price) {
         this.id = id;
         this.name = name;
         this.price = price;
+    }
+
+    // The default constructor is required for proper deserialization when using
+    // Jackson.
+    public Product() {
     }
 
     public Long getId() {
@@ -54,21 +46,5 @@ public class Product {
                 ", name='" + name + '\'' +
                 ", price=" + price +
                 '}';
-    }
-
-    private static List<String> listOfNames() {
-        List<String> names = new ArrayList<>();
-        names.add("Apple");
-        names.add("Melon");
-        names.add("Lemon");
-        return names;
-    }
-
-    private static List<String> listOfPrices() {
-        List<String> prices = new ArrayList<>();
-        prices.add("1.05");
-        prices.add("0.80");
-        prices.add("0.55");
-        return prices;
     }
 }
