@@ -31,7 +31,7 @@ def generate_data(kafka_bootstrap_servers, producer_topic, line_index, lines, nu
     delay = max(min_delay, min(delay, max_delay))
     time_for_sleep = delay / 2000
     time.sleep(time_for_sleep) # Simplified uni-directional delay (RTTs were saved in the file)
-    print("Time sleep {0}", time_for_sleep)
+    print("Delay for cluster {0} - {1} seconds".format(number_of_cluster, time_for_sleep))
 
     start_time = time.time()
     i=1
@@ -47,10 +47,10 @@ def generate_data(kafka_bootstrap_servers, producer_topic, line_index, lines, nu
 
         # Output regulary important information
         if i % window_size == 0:
-            elapsed_time = time.time() - start_time
-            current_throughput = i / elapsed_time
-            #print(f"Elapsed time : {elapsed_time:.2f} seconds")
-            print(f"Current Throughput Cluster {number_of_cluster}: {current_throughput:.2f} records/second")
+            # elapsed_time = time.time() - start_time
+            # current_throughput = i / elapsed_time
+            # print(f"Elapsed time : {elapsed_time:.2f} seconds")
+            # print(f"Current Throughput Cluster {number_of_cluster}: {current_throughput:.2f} records/second")
             time.sleep(time_for_sleep) # Simplified uni-directional delay (RTTs were saved in the file)
 
         i+=1

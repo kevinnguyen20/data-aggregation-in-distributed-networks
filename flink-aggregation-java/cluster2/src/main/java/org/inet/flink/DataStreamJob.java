@@ -42,11 +42,12 @@ public class DataStreamJob {
 		WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(2)), "Kafka Data Generator");
 		// DataStream<String> streamSource = env.readTextFile("../../../../../../../../records/output2.txt");
 
-		// Maps strings to product type
+		// Maps strings to product type and filters them by name
 		DataStream<Product> products = streamSource
             .map(new JsonToProductMapper())
             .filter(product -> product.getName().equals("Apple"));
 
+		// Prints price of products
 		DataStream<Double> price = products
 			.map(Product::getPrice)
 			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1)))
@@ -60,6 +61,7 @@ public class DataStreamJob {
 		KafkaSource<String> firstClusterSource = createKafkaSource(CLUSTER_COMMUNICATION_TOPIC, "data-between-clusters");
 		DataStream<String> dataFromFirstCluster = env.fromSource(firstClusterSource, WatermarkStrategy.noWatermarks(), "First Cluster Data");
 
+		// Filters data from first cluster by namea and price
 		DataStream<Product> productsFromFirstCluster = dataFromFirstCluster
 			.map(new JsonToProductMapper())
 			.filter(product -> product.getName().equals("Lemon") && product.getPrice() < 0.8);

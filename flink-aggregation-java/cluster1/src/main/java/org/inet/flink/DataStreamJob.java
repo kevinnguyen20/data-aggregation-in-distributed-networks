@@ -61,10 +61,12 @@ public class DataStreamJob {
 
 		KafkaSink<String> kafkaSink = createLocalKafkaSink();
 
+		// Maps strings to product type and filters them by name
 		DataStream<Product> products = streamSource
 			.map(new JsonToProductMapper())
 			.filter(product -> product.getName().equals("Lemon"));
-
+		
+		// Prints count of recieved records
 		DataStream<Long> countPerWindow = products
 			.windowAll(TumblingProcessingTimeWindows.of(org.apache.flink.streaming.api.windowing.time.Time.minutes(1)))
 			.apply(new AllWindowFunction<Product, Long, TimeWindow>() {
@@ -79,6 +81,7 @@ public class DataStreamJob {
 		
 		countPerWindow.print();
 
+		// Prints prices of products
 		DataStream<Double> prices = products
 			.map(Product::getPrice)
 			.windowAll(TumblingProcessingTimeWindows.of(org.apache.flink.streaming.api.windowing.time.Time.seconds(1)))
@@ -129,7 +132,5 @@ public class DataStreamJob {
 				.build();
 
 		return sink;
-
-		// productDataStream.sinkTo(sink);
 	}
 }
