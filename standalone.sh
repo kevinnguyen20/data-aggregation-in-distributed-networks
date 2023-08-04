@@ -25,17 +25,17 @@ copyAndRenameFile() {
 }
 
 startDataGenerators() {
-    python3 ./data-generators/datagen.py 1 &
-    python3 ./data-generators/datagen.py 2 &
-    # python3 ./data-generators/continuousData.py 1 2 &
-    # python3 ./data-generators/continuousData.py 2 3 &
+    # python3 ./data-generators/datagen.py 1 &
+    # python3 ./data-generators/datagen.py 2 &
+    python3 ./data-generators/continuousData.py 1 2 &
+    python3 ./data-generators/continuousData.py 2 3 &
 }
 
 stopDataGenerators() {
-    pkill -f "python3 ./data-generators/datagen.py 1"
-    pkill -f "python3 ./data-generators/datagen.py 2"
-    # pkill -f "./data-generators/continuousData.py 1 2"
-    # pkill -f "./data-generators/continuousData.py 2 3"
+    # pkill -f "python3 ./data-generators/datagen.py 1"
+    # pkill -f "python3 ./data-generators/datagen.py 2"
+    pkill -f "./data-generators/continuousData.py 1 2"
+    pkill -f "./data-generators/continuousData.py 2 3"
 }
 
 if [[ "$1" = "start" ]]; then
@@ -51,8 +51,8 @@ if [[ "$1" = "start" ]]; then
     sleep 10
     startDataGenerators
 
-    # Start the Flink cluster
-    "$FLINK_HOME/bin/start-cluster.sh" > /dev/null 2>&1 & # Start the first cluster
+    # Start the first cluster
+    "$FLINK_HOME/bin/start-cluster.sh" > /dev/null 2>&1 &
     sleep 3
     copyAndRenameFile
 
