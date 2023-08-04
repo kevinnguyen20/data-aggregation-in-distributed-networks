@@ -16,6 +16,7 @@ import org.inet.flink.model.Product;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.time.Duration;
 
 public class DataStreamJob {
 
@@ -42,7 +43,7 @@ public class DataStreamJob {
 		// Receives data from data generator
 		KafkaSource<String> dataGeneratorSource = createKafkaSource(CONSUMER_TOPIC_2, "data-generator");
 		DataStream<String> streamSource = env.fromSource(dataGeneratorSource,
-		WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(10))(), "Kafka Data Generator");
+		WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(2)), "Kafka Data Generator");
 		// DataStream<String> streamSource = env.readTextFile("../../../../../../../../records/output2.txt");
 
 		// Maps strings to product type
