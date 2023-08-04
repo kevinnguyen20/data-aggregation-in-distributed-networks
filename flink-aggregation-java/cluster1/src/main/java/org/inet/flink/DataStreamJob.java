@@ -7,8 +7,16 @@ import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
+// import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.functions.windowing.AllWindowFunction;
+import org.apache.flink.util.Collector;
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
+
+
+import java.time.Duration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -31,6 +39,7 @@ public class DataStreamJob {
 	public static void main(String[] args) throws Exception {
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
+		// env.setRuntimeMode(RuntimeExecutionMode.STREAMING);
 		env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
 			2, // Number of restart attempts
 			Time.seconds(1L) // Delay between restarts
@@ -46,21 +55,42 @@ public class DataStreamJob {
 		// Receives data from data generator
 		KafkaSource<String> dataGeneratorSource = createKafkaSource(CONSUMER_TOPIC);
 		DataStream<String> streamSource = env.fromSource(dataGeneratorSource,
-		WatermarkStrategy.noWatermarks(), "Kafka Data Generator");
+		WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(2)), "Kafka Data Generator");
+		// WatermarkStrategy.forMonotonousTimestamps(), "Kafka Data Generator");
 		// DataStream<String> streamSource = env.readTextFile("../../../../../../../../records/output.txt");
 
-		// Maps strings to product type
+		KafkaSink<String> kafkaSink = createLocalKafkaSink();
+
 		DataStream<Product> products = streamSource
-			.map(new JsonToProductMapper());
-			// .filter(product -> product.getName().equals("Lemon"));
-			
-		products.print();
+			.map(new JsonToProductMapper())
+			.filter(product -> product.getName().equals("Lemon"));
 
-		DataStream<String> streamSink = products
+		DataStream<Long> countPerWindow = products
+			.windowAll(TumblingProcessingTimeWindows.of(org.apache.flink.streaming.api.windowing.time.Time.minutes(1)))
+			.apply(new AllWindowFunction<Product, Long, TimeWindow>() {
+				public void apply(TimeWindow window, Iterable<Product> products, Collector<Long> out) throws Exception {
+					long count = 0;
+					for (Product product : products) {
+						count++;
+					}
+					out.collect(count);
+				}
+			});
+		
+		countPerWindow.print();
+
+		DataStream<Double> prices = products
+			.map(Product::getPrice)
+			.windowAll(TumblingProcessingTimeWindows.of(org.apache.flink.streaming.api.windowing.time.Time.seconds(1)))
+			.sum(0)
+			.map(sum -> (double) Math.round(sum*100)/100);
+		prices.print();
+		
+		DataStream<String> sink = products
 			.map(new ProductToJsonMapper());
-
+		
 		// Starts transmitting data to the other cluster
-		createLocalKafkaSink(streamSink);
+		sink.sinkTo(kafkaSink);
 
 		env.execute("Flink Data Generation");
 	}
@@ -87,7 +117,7 @@ public class DataStreamJob {
 				.build();
 	}
 
-	private static void createLocalKafkaSink(DataStream<String> productDataStream) {
+	private static KafkaSink<String> createLocalKafkaSink() {
 		KafkaSink<String> sink = KafkaSink.<String>builder()
 				.setBootstrapServers(KAFKA_BOOTSTRAP_SERVERS)
 				.setRecordSerializer(KafkaRecordSerializationSchema.builder()
@@ -98,6 +128,8 @@ public class DataStreamJob {
 				.setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
 				.build();
 
-		productDataStream.sinkTo(sink);
+		return sink;
+
+		// productDataStream.sinkTo(sink);
 	}
 }

@@ -16,6 +16,7 @@ import org.inet.flink.model.Product;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.time.Duration;
 
 public class DataStreamJob {
 
@@ -26,6 +27,7 @@ public class DataStreamJob {
 	public static void main(String[] args) throws Exception {
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
+		// env.setRuntimeMode(RuntimeExecutionMode.STREAMING);
 		env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
 			2, // Number of restart attempts
 			1000L // Delay between restarts
@@ -37,18 +39,19 @@ public class DataStreamJob {
 		// Receives data from data generator
 		KafkaSource<String> dataGeneratorSource = createKafkaSource(CONSUMER_TOPIC_2, "data-generator");
 		DataStream<String> streamSource = env.fromSource(dataGeneratorSource,
-		WatermarkStrategy.noWatermarks(), "Kafka Data Generator");
+		WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(2)), "Kafka Data Generator");
 		// DataStream<String> streamSource = env.readTextFile("../../../../../../../../records/output2.txt");
 
 		// Maps strings to product type
 		DataStream<Product> products = streamSource
-            .map(new JsonToProductMapper());
-            // .filter(product -> product.getName().equals("Apple"));
+            .map(new JsonToProductMapper())
+            .filter(product -> product.getName().equals("Apple"));
 
 		DataStream<Double> price = products
 			.map(Product::getPrice)
-			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(10)))
-			.sum(0);
+			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1)))
+			.sum(0)
+			.map(sum -> (double) Math.round(sum*100)/100);
 
 		products.print();
 		price.print();
@@ -58,15 +61,17 @@ public class DataStreamJob {
 		DataStream<String> dataFromFirstCluster = env.fromSource(firstClusterSource, WatermarkStrategy.noWatermarks(), "First Cluster Data");
 
 		DataStream<Product> productsFromFirstCluster = dataFromFirstCluster
-			.map(new JsonToProductMapper());
+			.map(new JsonToProductMapper())
+			.filter(product -> product.getName().equals("Lemon") && product.getPrice() < 0.8);
 
-		DataStream<Double> priceForProductsFromFirstCluster = productsFromFirstCluster
-			.map(Product::getPrice)
-			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(10)))
-			.sum(0);
+		// DataStream<Double> priceForProductsFromFirstCluster = productsFromFirstCluster
+		// 	.map(Product::getPrice)
+		// 	.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(10)))
+		// 	.sum(0)
+		// 	.map(sum -> (double) Math.round(sum*100)/100);
 
 		productsFromFirstCluster.print();
-		priceForProductsFromFirstCluster.print();
+		// priceForProductsFromFirstCluster.print();
 
 		env.execute("Flink Data Aggregation");
 	}
