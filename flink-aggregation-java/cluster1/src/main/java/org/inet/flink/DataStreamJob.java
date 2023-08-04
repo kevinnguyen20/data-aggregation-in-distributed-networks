@@ -49,7 +49,7 @@ public class DataStreamJob {
 		// Receives data from data generator
 		KafkaSource<String> dataGeneratorSource = createKafkaSource(CONSUMER_TOPIC);
 		DataStream<String> streamSource = env.fromSource(dataGeneratorSource,
-		WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(10))(), "Kafka Data Generator");
+		WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(10)), "Kafka Data Generator");
 		// WatermarkStrategy.forMonotonousTimestamps(), "Kafka Data Generator");
 		// DataStream<String> streamSource = env.readTextFile("../../../../../../../../records/output.txt");
 
