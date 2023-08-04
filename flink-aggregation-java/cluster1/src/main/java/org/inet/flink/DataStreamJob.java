@@ -11,6 +11,11 @@ import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTime
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
 // import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.functions.windowing.AllWindowFunction;
+import org.apache.flink.util.Collector;
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
+
+
 import java.time.Duration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -59,6 +64,20 @@ public class DataStreamJob {
 		DataStream<Product> products = streamSource
 			.map(new JsonToProductMapper())
 			.filter(product -> product.getName().equals("Lemon"));
+
+		DataStream<Long> countPerWindow = products
+			.windowAll(TumblingProcessingTimeWindows.of(org.apache.flink.streaming.api.windowing.time.Time.minutes(1)))
+			.apply(new AllWindowFunction<Product, Long, TimeWindow>() {
+				public void apply(TimeWindow window, Iterable<Product> products, Collector<Long> out) throws Exception {
+					long count = 0;
+					for (Product product : products) {
+						count++;
+					}
+					out.collect(count);
+				}
+			});
+		
+		countPerWindow.print();
 
 		DataStream<Double> prices = products
 			.map(Product::getPrice)
