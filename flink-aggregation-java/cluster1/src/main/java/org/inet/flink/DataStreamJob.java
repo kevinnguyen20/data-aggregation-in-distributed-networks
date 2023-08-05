@@ -14,6 +14,11 @@ import org.apache.flink.api.common.time.Time;
 import org.apache.flink.streaming.api.functions.windowing.AllWindowFunction;
 import org.apache.flink.util.Collector;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
+import org.apache.flink.streaming.api.functions.ProcessFunction;
+import org.apache.flink.streaming.api.functions.ProcessFunction.Context;
+import org.apache.flink.streaming.api.functions.windowing.ProcessAllWindowFunction;
+import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
+import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
 
 
 import java.time.Duration;
@@ -26,6 +31,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.inet.flink.model.Product;
+import org.inet.flink.model.Delay;
 import org.inet.flink.mapper.JsonToProductMapper;
 import org.inet.flink.mapper.ProductToJsonMapper;
 import org.inet.flink.generator.DataGenerator;
@@ -85,6 +91,20 @@ public class DataStreamJob {
 			.sum(0)
 			.map(sum -> (double) Math.round(sum*100)/100);
 		prices.print();
+
+		Delay delay = new Delay();
+
+		// DataStream<String> sink = products
+		// 	.map(new ProductToJsonMapper())
+		// 	.windowAll(SlidingProcessingTimeWindows.of(org.apache.flink.streaming.api.windowing.time.Time.seconds(5), org.apache.flink.streaming.api.windowing.time.Time.seconds(5)))
+		// 	.apply(new AllWindowFunction<String, String, TimeWindow>() {
+		// 		public void apply(TimeWindow window, Iterable<String> products, Collector<String> out) throws Exception {
+		// 			Thread.sleep((long) delay.calculateDelay());
+		// 			for (String product : products) {
+		// 				out.collect(product);
+		// 			}
+		// 		}
+		// 	});	
 		
 		DataStream<String> sink = products
 			.map(new ProductToJsonMapper());
