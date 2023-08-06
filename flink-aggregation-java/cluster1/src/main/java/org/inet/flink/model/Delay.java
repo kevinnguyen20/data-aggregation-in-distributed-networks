@@ -7,15 +7,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import java.util.Random;
+import java.nio.file.Paths;
+import java.io.Serializable;
 
-public class Delay {
+public class Delay implements Serializable {
     private double minDelay;
     private double avgDelay;
     private double maxDelay;
     private double mdevDelay;
 
     public Delay() {
-        try (BufferedReader reader = new BufferedReader(new FileReader("../../../../../../../../../delays.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(Paths.get("").toAbsolutePath().toString()+"/delays.txt"))) {
             String line;
             // Skip the header line
             // reader.readLine();

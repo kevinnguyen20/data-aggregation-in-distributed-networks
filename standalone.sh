@@ -53,16 +53,20 @@ if [[ "$1" = "start" ]]; then
 
     # Start the Flink cluster
     "$FLINK_HOME/bin/start-cluster.sh" > /dev/null 2>&1 & # Start the first cluster
-    sleep 3
+    # sleep 3
     copyAndRenameFile
     "$FLINK_HOME_2/bin/start-cluster.sh" > /dev/null 2>&1 & # Start the second cluster
 
     # Submit the job to the Flink cluster
-    "$FLINK_HOME/bin/flink" run "$FLINK_JOB_DIRECTORY/cluster1-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
-    "$FLINK_HOME_2/bin/flink" run "$FLINK_JOB_DIRECTORY_2/cluster2-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
+    # "$FLINK_HOME/bin/flink" run
+    # "$FLINK_JOB_DIRECTORY/cluster1-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
+    "$FLINK_HOME/bin/flink" run "$FLINK_JOB_DIRECTORY/cluster1-1.0-SNAPSHOT.jar" &
+    # "$FLINK_HOME_2/bin/flink" run
+    # "$FLINK_JOB_DIRECTORY_2/cluster2-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
+    "$FLINK_HOME_2/bin/flink" run "$FLINK_JOB_DIRECTORY_2/cluster2-1.0-SNAPSHOT.jar" &
 
 # Uncomment if you are too lazy to open the links by yourself
-   sleep 5
+   sleep 4
 
    xdg-open "http://localhost:8081" > /dev/null 2>&1 &
    xdg-open "http://localhost:8091" > /dev/null 2>&1 &
