@@ -45,26 +45,33 @@ public class DataStreamJob {
 		// Maps strings to product type and filters them by name
 		DataStream<Product> products = streamSource
             .map(new JsonToProductMapper())
-            .filter(product -> product.getName().equals("Apple"));
+			.name("Map: Json to Product")
+            .filter(product -> product.getName().equals("Apple"))
+			.name("Filter: By Product name Apple");
 
 		// Prints price of products
 		DataStream<Double> price = products
 			.map(Product::getPrice)
+			.name("Map: Extract prices")
 			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1)))
 			.sum(0)
-			.map(sum -> (double) Math.round(sum*100)/100);
+			.name("Sum: over the prices")
+			.map(sum -> (double) Math.round(sum*100)/100)
+			.name("Map: Round to two decimal places");
 
 		products.print();
 		price.print();
 
 		// Starts receiving data from first cluster
 		KafkaSource<String> firstClusterSource = createKafkaSource(CLUSTER_COMMUNICATION_TOPIC, "data-between-clusters");
-		DataStream<String> dataFromFirstCluster = env.fromSource(firstClusterSource, WatermarkStrategy.noWatermarks(), "First Cluster Data");
+		DataStream<String> dataFromFirstCluster = env.fromSource(firstClusterSource, WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(2)), "First Cluster Data");
 
 		// Filters data from first cluster by namea and price
 		DataStream<Product> productsFromFirstCluster = dataFromFirstCluster
 			.map(new JsonToProductMapper())
-			.filter(product -> product.getName().equals("Lemon") && product.getPrice() < 0.8);
+			.name("Map: Json to Product")
+			.filter(product -> product.getName().equals("Lemon") && product.getPrice()<0.8)
+			.name("Filter: By Product name Lemon and price less than 0.80");
 
 		// DataStream<Double> priceForProductsFromFirstCluster = productsFromFirstCluster
 		// 	.map(Product::getPrice)

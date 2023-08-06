@@ -14,6 +14,11 @@ import org.apache.flink.api.common.time.Time;
 import org.apache.flink.streaming.api.functions.windowing.AllWindowFunction;
 import org.apache.flink.util.Collector;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
+import org.apache.flink.streaming.api.functions.ProcessFunction;
+import org.apache.flink.streaming.api.functions.ProcessFunction.Context;
+import org.apache.flink.streaming.api.functions.windowing.ProcessAllWindowFunction;
+import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
+import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
 
 
 import java.time.Duration;
@@ -26,6 +31,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.inet.flink.model.Product;
+import org.inet.flink.model.Delay;
 import org.inet.flink.mapper.JsonToProductMapper;
 import org.inet.flink.mapper.ProductToJsonMapper;
 import org.inet.flink.generator.DataGenerator;
@@ -64,11 +70,13 @@ public class DataStreamJob {
 		// Maps strings to product type and filters them by name
 		DataStream<Product> products = streamSource
 			.map(new JsonToProductMapper())
-			.filter(product -> product.getName().equals("Lemon"));
-		
-		// Prints count of recieved records
+			.name("Map: Json to Product")
+			.filter(product -> product.getName().equals("Lemon"))
+			.name("Filter: By Product name Lemon");
+
 		DataStream<Long> countPerWindow = products
 			.windowAll(TumblingProcessingTimeWindows.of(org.apache.flink.streaming.api.windowing.time.Time.minutes(1)))
+			// .name("1 minute window")
 			.apply(new AllWindowFunction<Product, Long, TimeWindow>() {
 				public void apply(TimeWindow window, Iterable<Product> products, Collector<Long> out) throws Exception {
 					long count = 0;
@@ -77,23 +85,45 @@ public class DataStreamJob {
 					}
 					out.collect(count);
 				}
-			});
+			})
+			.name("Apply: Counting products");
 		
 		countPerWindow.print();
 
 		// Prints prices of products
 		DataStream<Double> prices = products
 			.map(Product::getPrice)
+			.name("Map: Extract prices")
 			.windowAll(TumblingProcessingTimeWindows.of(org.apache.flink.streaming.api.windowing.time.Time.seconds(1)))
+			// .name("1 second window")
 			.sum(0)
-			.map(sum -> (double) Math.round(sum*100)/100);
+			.name("Sum: Over the prices")
+			.map(sum -> (double) Math.round(sum*100)/100)
+			.name("Map: Round to two decimal places");
+
 		prices.print();
+
+		Delay delay = new Delay();
+
+		// DataStream<String> sink = products
+		// 	.map(new ProductToJsonMapper())
+		// 	.windowAll(SlidingProcessingTimeWindows.of(org.apache.flink.streaming.api.windowing.time.Time.seconds(5), org.apache.flink.streaming.api.windowing.time.Time.seconds(5)))
+		// 	.apply(new AllWindowFunction<String, String, TimeWindow>() {
+		// 		public void apply(TimeWindow window, Iterable<String> products, Collector<String> out) throws Exception {
+		// 			Thread.sleep((long) delay.calculateDelay());
+		// 			for (String product : products) {
+		// 				out.collect(product);
+		// 			}
+		// 		}
+		// 	});	
 		
 		DataStream<String> sink = products
-			.map(new ProductToJsonMapper());
+			.map(new ProductToJsonMapper())
+			.name("Map: Product to Json");
 		
 		// Starts transmitting data to the other cluster
-		sink.sinkTo(kafkaSink);
+		sink.sinkTo(kafkaSink)
+			.name("Kafka Sink");
 
 		env.execute("Flink Data Generation");
 	}
