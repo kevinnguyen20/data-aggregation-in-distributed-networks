@@ -54,7 +54,7 @@ public class DataStreamJob {
 		// Assigns values to the field variables
 		loadProperties();
 		
-		// // Starts data generation
+		// Starts data generation
 		// DataGenerator dataGenerator = new DataGenerator(KAFKA_BOOTSTRAP_SERVERS);
 		// dataGenerator.generateData(CONSUMER_TOPIC);
 
@@ -67,6 +67,7 @@ public class DataStreamJob {
 
 		KafkaSink<String> kafkaSink = createLocalKafkaSink();
 
+		// Maps strings to product type and filters them by name
 		DataStream<Product> products = streamSource
 			.map(new JsonToProductMapper())
 			.name("Map: Json to Product")
@@ -89,6 +90,7 @@ public class DataStreamJob {
 		
 		countPerWindow.print();
 
+		// Prints prices of products
 		DataStream<Double> prices = products
 			.map(Product::getPrice)
 			.name("Map: Extract prices")
@@ -160,7 +162,5 @@ public class DataStreamJob {
 				.build();
 
 		return sink;
-
-		// productDataStream.sinkTo(sink);
 	}
 }

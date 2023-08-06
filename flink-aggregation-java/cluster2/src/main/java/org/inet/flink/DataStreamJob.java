@@ -36,23 +36,20 @@ public class DataStreamJob {
 		// Assigns values to the field variables
 		loadProperties();
 
-		// Starts data generation
-		// DataGenerator dataGenerator = new DataGenerator(KAFKA_BOOTSTRAP_SERVERS);
-		// dataGenerator.generateData(CONSUMER_TOPIC_2);
-
 		// Receives data from data generator
 		KafkaSource<String> dataGeneratorSource = createKafkaSource(CONSUMER_TOPIC_2, "data-generator");
 		DataStream<String> streamSource = env.fromSource(dataGeneratorSource,
 		WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(2)), "Kafka Data Generator");
 		// DataStream<String> streamSource = env.readTextFile("../../../../../../../../records/output2.txt");
 
-		// Maps strings to product type
+		// Maps strings to product type and filters them by name
 		DataStream<Product> products = streamSource
             .map(new JsonToProductMapper())
 			.name("Map: Json to Product")
             .filter(product -> product.getName().equals("Apple"))
 			.name("Filter: By Product name Apple");
 
+		// Prints price of products
 		DataStream<Double> price = products
 			.map(Product::getPrice)
 			.name("Map: Extract prices")
@@ -69,6 +66,7 @@ public class DataStreamJob {
 		KafkaSource<String> firstClusterSource = createKafkaSource(CLUSTER_COMMUNICATION_TOPIC, "data-between-clusters");
 		DataStream<String> dataFromFirstCluster = env.fromSource(firstClusterSource, WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(2)), "First Cluster Data");
 
+		// Filters data from first cluster by namea and price
 		DataStream<Product> productsFromFirstCluster = dataFromFirstCluster
 			.map(new JsonToProductMapper())
 			.name("Map: Json to Product")
