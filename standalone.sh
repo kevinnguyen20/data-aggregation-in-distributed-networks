@@ -55,11 +55,13 @@ if [[ "$1" = "start" ]]; then
     "$FLINK_HOME/bin/start-cluster.sh" > /dev/null 2>&1 & # Start the first cluster
     # sleep 3
     copyAndRenameFile
+    "$FLINK_HOME_2/bin/start-cluster.sh" > /dev/null 2>&1 &
 
     # Submit the job to the Flink cluster
     # "$FLINK_HOME/bin/flink" run
     # "$FLINK_JOB_DIRECTORY/cluster1-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
     "$FLINK_HOME/bin/flink" run "$FLINK_JOB_DIRECTORY/cluster1-1.0-SNAPSHOT.jar" &
+    # sleep 5
     # "$FLINK_HOME_2/bin/flink" run
     # "$FLINK_JOB_DIRECTORY_2/cluster2-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
     "$FLINK_HOME_2/bin/flink" run "$FLINK_JOB_DIRECTORY_2/cluster2-1.0-SNAPSHOT.jar" &
