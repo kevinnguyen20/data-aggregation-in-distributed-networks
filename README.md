@@ -2,7 +2,7 @@
 
 In this project we are using Apache Flink for executing queries in different networks, whose result we then transfer to a data aggregator. In the links between the networks and the aggregator we emulate bad network conditions using Pumba in order to measure the impact of these on the whole execution time.
 
-# Steps to run the aaplication
+# Steps to run the aplication
 Prerequisites:
 * Download Kafka binary `kafka_2.13-3.4.0` and Apache Flink binary `flink-1.17.1`, unzip them and don't change anything in the Flink config directory.
 
