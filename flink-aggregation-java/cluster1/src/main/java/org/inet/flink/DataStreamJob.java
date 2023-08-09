@@ -73,7 +73,7 @@ public class DataStreamJob {
 			.filter(product -> product.getName().equals("Lemon"))
 			.name("Filter: By Product name Lemon");
 
-		DataStream<Long> countPerWindow = products
+		DataStream<String> countPerWindow = products
 			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(10)))
 			.apply(new AllWindowFunction<Product, Long, TimeWindow>() {
 				public void apply(TimeWindow window, Iterable<Product> products, Collector<Long> out) throws Exception {
@@ -84,19 +84,23 @@ public class DataStreamJob {
 					out.collect(count);
 				}
 			})
-			.name("Apply: Counting products");
+			.name("Apply: Counting products")
+			.map(count -> "Products: " + Math.round(count/10) + " records/s")
+			.name("Map: Formatted product count");
 		
 		countPerWindow.print();
 
 		// Prints prices of products
-		DataStream<Double> prices = products
+		DataStream<String> prices = products
 			.map(Product::getPrice)
 			.name("Map: Extract prices")
 			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(10)))
 			.sum(0)
 			.name("Sum: Over the prices")
-			.map(sum -> (double) Math.round(sum*100)/100)
-			.name("Map: Round to two decimal places");
+			.map(sum -> (double) Math.round(sum/10*100)/100)
+			.name("Map: Round to two decimal places")
+			.map(price -> "Price: " + price + " €/s")
+			.name("Map: Formatted price");
 
 		prices.print();
 

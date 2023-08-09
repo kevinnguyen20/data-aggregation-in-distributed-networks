@@ -49,7 +49,7 @@ public class Delay implements Serializable {
         if (random.nextDouble()<probability) {
             double gaussian = random.nextGaussian() * this.mdevDelay + this.avgDelay;
             double delay = Math.min(this.maxDelay, Math.max(this.minDelay, gaussian));
-            System.out.println("Delay: " + delay / 2);
+            System.out.println("Delay: " + (double) Math.round(delay/2*100)/100 + " ms");
             return delay / 2.0;
         } else {
             // No delay with 4/5 probability
