@@ -100,7 +100,8 @@ public class DataStreamJob {
 
 		prices.print();
 
-		Delay delay = new Delay();
+		// Change the argument for alternative delays (1-15)
+		Delay delay = new Delay(3);
 
 		DataStream<String> sink = products
 			.map(new ProductToJsonMapper())
