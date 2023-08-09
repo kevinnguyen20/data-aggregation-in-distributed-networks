@@ -12,6 +12,14 @@ import org.apache.flink.streaming.api.windowing.time.Time;
 import org.inet.flink.generator.DataGenerator;
 import org.inet.flink.mapper.JsonToProductMapper;
 import org.inet.flink.model.Product;
+import org.apache.flink.streaming.api.functions.windowing.ProcessAllWindowFunction;
+
+import org.apache.flink.streaming.api.functions.co.CoFlatMapFunction;
+import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
+import org.apache.flink.util.Collector;
+import org.apache.flink.streaming.api.functions.windowing.AllWindowFunction;
+import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,22 +59,10 @@ public class DataStreamJob {
 		DataStream<Product> products = streamSource
             .map(new JsonToProductMapper())
 			.name("Map: Json to Product")
-            .filter(product -> product.getName().equals("Apple"))
-			.name("Filter: By Product name Apple");
+            .filter(product -> product.getName().equals("Apple") && product.getPrice()<0.8)
+			.name("Filter: By Product name Apple and price less than 0.80 €");
 
-		products.print();
-
-		// Prints price of products
-		DataStream<Double> price = products
-			.map(Product::getPrice)
-			.name("Map: Extract prices")
-			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(10)))
-			.sum(0)
-			.name("Sum: Over the prices")
-			.map(sum -> (double) Math.round(sum*100)/100)
-			.name("Map: Round to two decimal places");
-
-		price.print();
+		// products.print();
 
 		// Starts receiving data from first cluster
 		KafkaSource<String> firstClusterSource = createKafkaSource(CLUSTER_COMMUNICATION_TOPIC, "data-between-clusters");
@@ -77,20 +73,119 @@ public class DataStreamJob {
 			.map(new JsonToProductMapper())
 			.name("Map: Json to Product")
 			.filter(product -> product.getName().equals("Lemon") && product.getPrice()<0.8)
-			.name("Filter: By Product name Lemon and price less than 0.80");
+			.name("Filter: By Product name Lemon and price less than 0.80 €");
 
-		productsFromFirstCluster.print();
+		// productsFromFirstCluster.print();
 
-		DataStream<Double> priceForProductsFromFirstCluster = productsFromFirstCluster
-			.map(Product::getPrice)
-			.name("Map: Extract prices")
-			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(10)))
-			.sum(0)
-			.name("Sum: Over the prices")
-			.map(sum -> (double) Math.round(sum*100)/100)
-			.name("Map: Round to two decimal places");
+		DataStream<Tuple2<Product, Product>> joinedProducts = products
+			.connect(productsFromFirstCluster)
+			// .name("Connect: product stream for the first cluster with the stream on the current cluster")
+			.flatMap(new CoFlatMapFunction<Product, Product, Tuple2<Product, Product>>() {
+				private Product lemonProduct;
+				private Product appleProduct;
 
-		priceForProductsFromFirstCluster.print();
+				@Override
+				public void flatMap1(Product lemonProduct, Collector<Tuple2<Product, Product>> out) {
+					this.lemonProduct = lemonProduct;
+				}
+
+				@Override
+				public void flatMap2(Product appleProduct, Collector<Tuple2<Product, Product>> out) {
+					this.appleProduct = appleProduct;
+					if (lemonProduct!=null) {
+						out.collect(new Tuple2<>(lemonProduct, appleProduct));
+						lemonProduct = null;
+						appleProduct = null;
+					}
+				}
+			})
+			.name("FlatMap: Create tuple of products from the first cluster with products on the current cluster");
+			// .windowAll(TumblingProcessingTimeWindows.of(Time.seconds(30)))
+			// .apply(new AllWindowFunction<Tuple2<Product, Product>, Double, TimeWindow>() {
+			// 	@Override
+			// 	public void apply(TimeWindow window, Iterable<Tuple2<Product, Product>> products, Collector<Double> out) {
+			// 		double sum = 0.0;
+			// 		for (Tuple2<Product, Product> tuple : products) {
+			// 			sum += tuple.f0.getPrice() + tuple.f1.getPrice();
+			// 		}
+			// 		out.collect(sum);
+			// 	}
+			// })
+			// .name("Apply: Sum over prices")
+			// .map(sum -> (double) Math.round(sum/10*100)/100)
+			// .name("Map: Round to two decimal places")
+			// .map(price -> "Total Price: " + price + " €/s")
+			// .name("Map: Formatted total price");
+			
+		// Create a stream to calculate the sum over the prices from both streams
+		// DataStream<Double> sumOfPricesStream = joinedProducts
+		// 	.windowAll(SlidingProcessingTimeWindows.of(Time.seconds(30), Time.seconds(5)))
+		// 	.apply(new AllWindowFunction<Tuple2<Product, Product>, Double, TimeWindow>() {
+		// 		@Override
+		// 		public void apply(TimeWindow window, Iterable<Tuple2<Product, Product>> products, Collector<Double> out) {
+		// 			double sumOfPrices = 0.0;
+
+		// 			for (Tuple2<Product, Product> tuple : products) {
+		// 				if (tuple.f0 != null) {
+		// 					sumOfPrices += tuple.f0.getPrice();
+		// 				}
+		// 				if (tuple.f1 != null) {
+		// 					sumOfPrices += tuple.f1.getPrice();
+		// 				}
+		// 			}
+
+		// 			out.collect(sumOfPrices);
+		// 		}
+		// 	})
+		// 	.name("Apply: Calculate the sum over prices from both streams");
+
+		// Print the sum of prices stream
+		// sumOfPricesStream.print();
+
+		// Create a stream to count the number of products from both streams
+		DataStream<Tuple2<Integer, Integer>> countOfProductsStream = joinedProducts
+			.windowAll(SlidingProcessingTimeWindows.of(Time.seconds(30), Time.seconds(5)))
+			.apply(new AllWindowFunction<Tuple2<Product, Product>, Tuple2<Integer, Integer>, TimeWindow>() {
+				@Override
+				public void apply(TimeWindow window, Iterable<Tuple2<Product, Product>> products, Collector<Tuple2<Integer, Integer>> out) {
+					int countProductsFromStream1 = 0;
+					int countProductsFromStream2 = 0;
+
+					for (Tuple2<Product, Product> tuple : products) {
+						if (tuple.f0 != null) {
+							countProductsFromStream1++;
+						}
+						if (tuple.f1 != null) {
+							countProductsFromStream2++;
+						}
+					}
+
+					out.collect(new Tuple2<>(countProductsFromStream1, countProductsFromStream2));
+				}
+			})
+			.name("Apply: Count the number of products from both streams");
+
+		// Print the count of products stream
+		countOfProductsStream.print();
+
+		// joinedProducts.print();
+
+		// Sum over the prices of joined products
+		// DataStream<Double> sumOfPrices = joinedProducts
+		// 	.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(10)))
+		// 	.apply(new AllWindowFunction<Tuple2<Product, Product>, Double, TimeWindow>() {
+		// 		@Override
+		// 		public void apply(TimeWindow window, Iterable<Tuple2<Product, Product>> products, Collector<Double> out) {
+		// 			double sum = 0.0;
+		// 			for (Tuple2<Product, Product> tuple : products) {
+		// 				sum += tuple.f0.getPrice() + tuple.f1.getPrice();
+		// 			}
+		// 			out.collect(sum);
+		// 		}
+		// 	})
+		// 	.name("Apply: Sum over prices");
+
+		// sumOfPrices.print();
 
 		env.execute("Flink Data Aggregation");
 	}
