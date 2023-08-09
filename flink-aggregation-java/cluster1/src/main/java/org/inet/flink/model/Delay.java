@@ -59,8 +59,6 @@ public class Delay implements Serializable {
         }
     }
     
-    
-
     public double getMinDelay() {
         return minDelay;
     }
