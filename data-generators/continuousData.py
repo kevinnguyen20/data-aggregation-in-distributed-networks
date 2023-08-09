@@ -3,7 +3,6 @@ import json
 import time
 import sys
 import os
-#from kafka import KafkaProducer #uncomment whatever works for you
 from kafka3 import KafkaProducer
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -30,7 +29,6 @@ def generate_data(kafka_bootstrap_servers, producer_topic, line_index, lines, nu
     delay = random.gauss(avg_delay, mdev_delay)
     delay = max(min_delay, min(delay, max_delay))
     time_for_sleep = delay / 2000
-    time.sleep(time_for_sleep) # Simplified uni-directional delay (RTTs were saved in the file)
     print("Delay for cluster {0} - {1} seconds".format(number_of_cluster, time_for_sleep))
 
     start_time = time.time()
