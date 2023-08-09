@@ -29,17 +29,23 @@ public class DataStreamJob {
 
 		// env.setRuntimeMode(RuntimeExecutionMode.STREAMING);
 		env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
-			2, // Number of restart attempts
+			20, // Number of restart attempts
 			1000L // Delay between restarts
 		));
 
 		// Assigns values to the field variables
 		loadProperties();
 
+		// Uncomment to start the bounded data generator attached to the job
+		// DataGenerator dataGenerator = new DataGenerator(KAFKA_BOOTSTRAP_SERVERS);
+		// dataGenerator.generateData(CONSUMER_TOPIC_2);
+
 		// Receives data from data generator
 		KafkaSource<String> dataGeneratorSource = createKafkaSource(CONSUMER_TOPIC_2, "data-generator");
 		DataStream<String> streamSource = env.fromSource(dataGeneratorSource,
 		WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(2)), "Kafka Data Generator");
+
+		// Uncomment to use the file source (Kafka not needed)
 		// DataStream<String> streamSource = env.readTextFile("../../../../../../../../records/output2.txt");
 
 		// Maps strings to product type and filters them by name
