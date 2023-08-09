@@ -9,8 +9,7 @@ import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
-import org.apache.flink.api.common.time.Time;
-// import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.functions.windowing.AllWindowFunction;
 import org.apache.flink.util.Collector;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
@@ -44,17 +43,15 @@ public class DataStreamJob {
 
 	public static void main(String[] args) throws Exception {
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-
-		// env.setRuntimeMode(RuntimeExecutionMode.STREAMING);
 		env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
-			2, // Number of restart attempts
-			Time.seconds(1L) // Delay between restarts
+			20, // Number of restart attempts
+			1000L // Delay between restarts
 		));
 
 		// Assigns values to the field variables
 		loadProperties();
 		
-		// Starts data generation
+		// Uncomment to start the bounded data generator attached to the job
 		// DataGenerator dataGenerator = new DataGenerator(KAFKA_BOOTSTRAP_SERVERS);
 		// dataGenerator.generateData(CONSUMER_TOPIC);
 
@@ -62,6 +59,8 @@ public class DataStreamJob {
 		KafkaSource<String> dataGeneratorSource = createKafkaSource(CONSUMER_TOPIC);
 		DataStream<String> streamSource = env.fromSource(dataGeneratorSource,
 		WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(2)), "Kafka Data Generator");
+
+		// Uncomment to use the file source (Kafka not needed)
 		// WatermarkStrategy.forMonotonousTimestamps(), "Kafka Data Generator");
 		// DataStream<String> streamSource = env.readTextFile("../../../../../../../../records/output.txt");
 
@@ -75,8 +74,7 @@ public class DataStreamJob {
 			.name("Filter: By Product name Lemon");
 
 		DataStream<Long> countPerWindow = products
-			.windowAll(TumblingProcessingTimeWindows.of(org.apache.flink.streaming.api.windowing.time.Time.minutes(1)))
-			// .name("1 minute window")
+			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(10)))
 			.apply(new AllWindowFunction<Product, Long, TimeWindow>() {
 				public void apply(TimeWindow window, Iterable<Product> products, Collector<Long> out) throws Exception {
 					long count = 0;
@@ -94,8 +92,7 @@ public class DataStreamJob {
 		DataStream<Double> prices = products
 			.map(Product::getPrice)
 			.name("Map: Extract prices")
-			.windowAll(TumblingProcessingTimeWindows.of(org.apache.flink.streaming.api.windowing.time.Time.seconds(1)))
-			// .name("1 second window")
+			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(10)))
 			.sum(0)
 			.name("Sum: Over the prices")
 			.map(sum -> (double) Math.round(sum*100)/100)
@@ -105,21 +102,21 @@ public class DataStreamJob {
 
 		Delay delay = new Delay();
 
-		// DataStream<String> sink = products
-		// 	.map(new ProductToJsonMapper())
-		// 	.windowAll(SlidingProcessingTimeWindows.of(org.apache.flink.streaming.api.windowing.time.Time.seconds(5), org.apache.flink.streaming.api.windowing.time.Time.seconds(5)))
-		// 	.apply(new AllWindowFunction<String, String, TimeWindow>() {
-		// 		public void apply(TimeWindow window, Iterable<String> products, Collector<String> out) throws Exception {
-		// 			Thread.sleep((long) delay.calculateDelay());
-		// 			for (String product : products) {
-		// 				out.collect(product);
-		// 			}
-		// 		}
-		// 	});	
-		
 		DataStream<String> sink = products
 			.map(new ProductToJsonMapper())
-			.name("Map: Product to Json");
+			.name("Map: Product to Json")
+			// Changing the window size may cause cluster 2 to fail (cf. restart
+			// strategy)
+			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(10)))
+			.apply(new AllWindowFunction<String, String, TimeWindow>() {
+				public void apply(TimeWindow window, Iterable<String> products, Collector<String> out) throws Exception {
+					Thread.sleep((long) delay.calculateDelay());
+					for (String product : products) {
+						out.collect(product);
+					}
+				}
+			})
+			.name("Apply: Delay mechanism");
 		
 		// Starts transmitting data to the other cluster
 		sink.sinkTo(kafkaSink)
