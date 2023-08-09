@@ -10,7 +10,7 @@ public class JsonToProductMapper implements MapFunction<String, Product> {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public Product map(String json) {
+    public Product map(String json) throws Exception {
         try {
             return objectMapper.readValue(json, Product.class);
         } catch (IOException e) {
