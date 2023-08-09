@@ -27,7 +27,6 @@ public class DataStreamJob {
 	public static void main(String[] args) throws Exception {
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-		// env.setRuntimeMode(RuntimeExecutionMode.STREAMING);
 		env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
 			20, // Number of restart attempts
 			1000L // Delay between restarts
@@ -55,17 +54,18 @@ public class DataStreamJob {
             .filter(product -> product.getName().equals("Apple"))
 			.name("Filter: By Product name Apple");
 
+		products.print();
+
 		// Prints price of products
 		DataStream<Double> price = products
 			.map(Product::getPrice)
 			.name("Map: Extract prices")
-			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1)))
+			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(10)))
 			.sum(0)
-			.name("Sum: over the prices")
+			.name("Sum: Over the prices")
 			.map(sum -> (double) Math.round(sum*100)/100)
 			.name("Map: Round to two decimal places");
 
-		products.print();
 		price.print();
 
 		// Starts receiving data from first cluster
@@ -79,14 +79,18 @@ public class DataStreamJob {
 			.filter(product -> product.getName().equals("Lemon") && product.getPrice()<0.8)
 			.name("Filter: By Product name Lemon and price less than 0.80");
 
-		// DataStream<Double> priceForProductsFromFirstCluster = productsFromFirstCluster
-		// 	.map(Product::getPrice)
-		// 	.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(10)))
-		// 	.sum(0)
-		// 	.map(sum -> (double) Math.round(sum*100)/100);
-
 		productsFromFirstCluster.print();
-		// priceForProductsFromFirstCluster.print();
+
+		DataStream<Double> priceForProductsFromFirstCluster = productsFromFirstCluster
+			.map(Product::getPrice)
+			.name("Map: Extract prices")
+			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(10)))
+			.sum(0)
+			.name("Sum: Over the prices")
+			.map(sum -> (double) Math.round(sum*100)/100)
+			.name("Map: Round to two decimal places");
+
+		priceForProductsFromFirstCluster.print();
 
 		env.execute("Flink Data Aggregation");
 	}
