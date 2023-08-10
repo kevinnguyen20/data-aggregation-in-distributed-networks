@@ -1,40 +1,38 @@
 package org.inet.flink;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.Duration;
+import java.util.Properties;
+
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
-import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
-import org.apache.flink.api.common.restartstrategy.RestartStrategies;
-import org.apache.flink.streaming.api.windowing.time.Time;
-import org.apache.flink.streaming.api.functions.windowing.AllWindowFunction;
-import org.apache.flink.util.Collector;
-import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
-import org.apache.flink.streaming.api.functions.ProcessFunction;
-import org.apache.flink.streaming.api.functions.ProcessFunction.Context;
-import org.apache.flink.streaming.api.functions.windowing.ProcessAllWindowFunction;
-import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
-import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
-import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
-
-
-import java.time.Duration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.ProcessFunction;
+import org.apache.flink.streaming.api.functions.ProcessFunction.Context;
+import org.apache.flink.streaming.api.functions.windowing.AllWindowFunction;
+import org.apache.flink.streaming.api.functions.windowing.ProcessAllWindowFunction;
+import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
+import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
+import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
+import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
+import org.apache.flink.util.Collector;
 
-import java.io.InputStream;
-import java.io.IOException;
-
-import java.util.Properties;
-
-import org.inet.flink.model.Product;
-import org.inet.flink.model.Delay;
+import org.inet.flink.generator.DataGenerator;
 import org.inet.flink.mapper.JsonToProductMapper;
 import org.inet.flink.mapper.ProductToJsonMapper;
-import org.inet.flink.generator.DataGenerator;
+import org.inet.flink.model.Product;
+import org.inet.flink.model.Delay;
 
 public class DataStreamJob {
 
@@ -49,14 +47,14 @@ public class DataStreamJob {
 			1000L // Delay between restarts
 		));
 
-		// Assigns values to the field variables
+		// Assign values to the field variables
 		loadProperties();
 		
 		// Uncomment to start the bounded data generator attached to the job
 		// DataGenerator dataGenerator = new DataGenerator(KAFKA_BOOTSTRAP_SERVERS);
 		// dataGenerator.generateData(CONSUMER_TOPIC);
 
-		// Receives data from data generator
+		// Receive data from data generator
 		KafkaSource<String> dataGeneratorSource = createKafkaSource(CONSUMER_TOPIC);
 		DataStream<String> streamSource = env.fromSource(dataGeneratorSource,
 		WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(2)), "Kafka Data Generator");
@@ -67,14 +65,14 @@ public class DataStreamJob {
 
 		KafkaSink<String> kafkaSink = createLocalKafkaSink();
 
-		// Maps strings to product type and filters them by name
+		// Map strings to product type and filters them by name
 		DataStream<Product> products = streamSource
 			.map(new JsonToProductMapper())
 			.name("Map: Json to Product")
 			.filter(product -> product.getName().equals("Lemon"))
 			.name("Filter: By Product name Lemon");
 
-		// Prints number of products
+		// Print number of products
 		DataStream<String> countPerWindow = products
 			.windowAll(SlidingEventTimeWindows.of(Time.seconds(30), Time.seconds(5)))
 			.apply(new AllWindowFunction<Product, Long, TimeWindow>() {
@@ -92,7 +90,7 @@ public class DataStreamJob {
 		
 		countPerWindow.print();
 
-		// Prints prices of products
+		// Print prices of products
 		DataStream<String> prices = products
 			.map(Product::getPrice)
 			.name("Map: Extract prices")
@@ -104,7 +102,7 @@ public class DataStreamJob {
 			.map(price -> "Price: " + price + " €/s")
 			.name("Map: Formatted price");
 
-		// prices.print();
+		prices.print();
 
 		// Change the argument for alternative delays (1-15)
 		Delay delay = new Delay(3);
@@ -114,7 +112,7 @@ public class DataStreamJob {
 			.name("Map: Product to Json")
 			// Changing the window size may cause cluster 2 to fail (cf. restart
 			// strategy)
-			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(10)))
+			.windowAll(TumblingEventTimeWindows.of(Time.seconds(10)))
 			.apply(new AllWindowFunction<String, String, TimeWindow>() {
 				public void apply(TimeWindow window, Iterable<String> products, Collector<String> out) throws Exception {
 					Thread.sleep((long) delay.calculateDelay());
@@ -125,7 +123,7 @@ public class DataStreamJob {
 			})
 			.name("Apply: Delay mechanism");
 		
-		// Starts transmitting data to the other cluster
+		// Start transmitting data to the other cluster
 		sink.sinkTo(kafkaSink)
 			.name("Kafka Sink");
 
