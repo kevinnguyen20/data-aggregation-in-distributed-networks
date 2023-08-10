@@ -96,7 +96,7 @@ public class DataStreamJob {
 		DataStream<String> prices = products
 			.map(Product::getPrice)
 			.name("Map: Extract prices")
-			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(5)))
+			.windowAll(SlidingEventTimeWindows.of(Time.seconds(30), Time.seconds(5)))
 			.sum(0)
 			.name("Sum: Over the prices")
 			.map(sum -> (double) Math.round(sum/5*100)/100)

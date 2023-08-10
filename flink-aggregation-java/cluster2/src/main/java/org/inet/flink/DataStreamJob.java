@@ -63,8 +63,6 @@ public class DataStreamJob {
             .filter(product -> product.getName().equals("Apple") && product.getPrice()<0.8)
 			.name("Filter: By Product name Apple and price less than 0.80 €");
 
-		// products.print();
-
 		// Starts receiving data from first cluster
 		KafkaSource<String> firstClusterSource = createKafkaSource(CLUSTER_COMMUNICATION_TOPIC, "data-between-clusters");
 		DataStream<String> dataFromFirstCluster = env.fromSource(firstClusterSource, WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(2)), "First Cluster Data");
@@ -72,14 +70,14 @@ public class DataStreamJob {
 		// Filters data from first cluster by namea and price
 		DataStream<Product> productsFromFirstCluster = dataFromFirstCluster
 			.map(new JsonToProductMapper())
-			// .name("Map: Json to Product")
-			// .filter(product -> product.getName().equals("Lemon") && product.getPrice()<0.8)
-			// .name("Filter: By Product name Lemon and price less than 0.80 €");
-			.filter(product -> product.getName().equals("Lemon"))
-			.name("Filter: By Product name Lemon");
+			.name("Map: Json to Product")
+			.filter(product -> product.getName().equals("Lemon") && product.getPrice()<0.8)
+			.name("Filter: By Product name Lemon and price less than 0.80 €");
 
-		DataStream<String> countPerWindow = productsFromFirstCluster
-			.windowAll(SlidingProcessingTimeWindows.of(Time.seconds(30), Time.seconds(5)))
+		DataStream<Product> joinedProducts = products.union(productsFromFirstCluster);
+
+		DataStream<String> countPerWindow = joinedProducts
+			.windowAll(SlidingEventTimeWindows.of(Time.seconds(30), Time.seconds(5)))
 			.apply(new AllWindowFunction<Product, Long, TimeWindow>() {
 				public void apply(TimeWindow window, Iterable<Product> products, Collector<Long> out) throws Exception {
 					long count = 0;
@@ -95,146 +93,26 @@ public class DataStreamJob {
 		
 		countPerWindow.print();
 
-		// productsFromFirstCluster.print();
-
-		DataStream<Product> joinedProducts = products.union(productsFromFirstCluster);
-
-		// DataStream<Tuple2<Product, Product>> joinedProducts = products
-		// 	.union(productsFromFirstCluster);
-			// .connect(productsFromFirstCluster)
-			// .name("Connect: product stream for the first cluster with the stream on the current cluster")
-			// .flatMap(new CoFlatMapFunction<Product, Product, Tuple2<Product, Product>>() {
-			// 	private Product lemonProduct;
-			// 	private Product appleProduct;
-
-			// 	@Override
-			// 	public void flatMap1(Product lemonProduct, Collector<Tuple2<Product, Product>> out) {
-			// 		this.lemonProduct = lemonProduct;
-			// 	}
-
-			// 	@Override
-			// 	public void flatMap2(Product appleProduct, Collector<Tuple2<Product, Product>> out) {
-			// 		this.appleProduct = appleProduct;
-			// 		if (lemonProduct!=null) {
-			// 			out.collect(new Tuple2<>(lemonProduct, appleProduct));
-			// 			lemonProduct = null;
-			// 			appleProduct = null;
-			// 		}
-			// 	}
-			// })
-			// .name("FlatMap: Create tuple of products from the first cluster with products on the current cluster");
-			// .windowAll(TumblingProcessingTimeWindows.of(Time.seconds(30)))
-			// .apply(new AllWindowFunction<Tuple2<Product, Product>, Double, TimeWindow>() {
-			// 	@Override
-			// 	public void apply(TimeWindow window, Iterable<Tuple2<Product, Product>> products, Collector<Double> out) {
-			// 		double sum = 0.0;
-			// 		for (Tuple2<Product, Product> tuple : products) {
-			// 			sum += tuple.f0.getPrice() + tuple.f1.getPrice();
-			// 		}
-			// 		out.collect(sum);
-			// 	}
-			// })
-			// .name("Apply: Sum over prices")
-			// .map(sum -> (double) Math.round(sum/10*100)/100)
-			// .name("Map: Round to two decimal places")
-			// .map(price -> "Total Price: " + price + " €/s")
-			// .name("Map: Formatted total price");
-
-		DataStream<String> countPerWindow2 = joinedProducts
+		// Sum over the prices of joined products
+		DataStream<String> sumOfPrices = joinedProducts
 			.windowAll(SlidingEventTimeWindows.of(Time.seconds(30), Time.seconds(5)))
-			.apply(new AllWindowFunction<Product, Long, TimeWindow>() {
-				public void apply(TimeWindow window, Iterable<Product> products, Collector<Long> out) throws Exception {
-					long count = 0;
+			.apply(new AllWindowFunction<Product, Double, TimeWindow>() {
+				@Override
+				public void apply(TimeWindow window, Iterable<Product> products, Collector<Double> out) {
+					double sum = 0.0;
 					for (Product product : products) {
-						count++;
+						sum += product.getPrice() + product.getPrice();
 					}
-					out.collect(count);
+					out.collect(sum);
 				}
 			})
-			.name("Apply: Counting products")
-			.map(count -> "Products: " + Math.round(count/30) + " records/s")
-			.name("Map: Formatted product count");
-		
-		countPerWindow2.print();
-			
-		// Create a stream to calculate the sum over the prices from both streams
-		// DataStream<Double> sumOfPricesStream = joinedProducts
-		// 	.windowAll(SlidingProcessingTimeWindows.of(Time.seconds(30), Time.seconds(5)))
-		// 	.apply(new AllWindowFunction<Tuple2<Product, Product>, Double, TimeWindow>() {
-		// 		@Override
-		// 		public void apply(TimeWindow window, Iterable<Tuple2<Product, Product>> products, Collector<Double> out) {
-		// 			double sumOfPrices = 0.0;
+			.name("Apply: Sum over prices")
+			.map(sum -> (double) Math.round(sum/5*100)/100)
+			.name("Map: Round to two decimal places")
+			.map(price -> "Price: " + price + " €/s")
+			.name("Map: Formatted price");
 
-		// 			for (Tuple2<Product, Product> tuple : products) {
-		// 				if (tuple.f0 != null) {
-		// 					sumOfPrices += tuple.f0.getPrice();
-		// 				}
-		// 				if (tuple.f1 != null) {
-		// 					sumOfPrices += tuple.f1.getPrice();
-		// 				}
-		// 			}
-
-		// 			out.collect(sumOfPrices);
-		// 		}
-		// 	})
-		// 	.name("Apply: Calculate the sum over prices from both streams");
-
-		// Print the sum of prices stream
-		// sumOfPricesStream.print();
-
-		// Create a stream to count the number of products from both streams
-		// DataStream<Tuple2<Integer, Integer>> countOfProductsStream =
-		// joinedProducts
-		// DataStream<String> countOfProductsStream = joinedProducts
-		// 	.windowAll(SlidingProcessingTimeWindows.of(Time.seconds(30), Time.seconds(5)))
-		// 	.apply(new AllWindowFunction<Tuple2<Product, Product>, Long, TimeWindow>() {
-		// 		@Override
-		// 		// public void apply(TimeWindow window, Iterable<Tuple2<Product,
-		// 		// Product>> products, Collector<Tuple2<Integer, Integer>> out)
-		// 		// {
-		// 		public void apply(TimeWindow window, Iterable<Tuple2<Product, Product>> products, Collector<Long> out) throws Exception {
-		// 			long countProductsFromStream1 = 0;
-		// 			long countProductsFromStream2 = 0;
-
-		// 			for (Tuple2<Product, Product> tuple : products) {
-		// 				if (tuple.f0 != null) {
-		// 					countProductsFromStream1++;
-		// 				}
-		// 				if (tuple.f1 != null) {
-		// 					countProductsFromStream2++;
-		// 				}
-		// 			}
-
-		// 			// out.collect(new Tuple2<>(countProductsFromStream1,
-		// 			// countProductsFromStream2));
-		// 			out.collect(countProductsFromStream1+countProductsFromStream2);
-		// 		}
-		// 	})
-		// 	.name("Apply: Count the number of products from both streams")
-		// 	.map(count -> "Products (joined): " + Math.round(count/30) + " records/s")
-		// 	.name("Map: Formatted product count");
-
-		// Print the count of products stream
-		// countOfProductsStream.print();
-
-		// joinedProducts.print();
-
-		// Sum over the prices of joined products
-		// DataStream<Double> sumOfPrices = joinedProducts
-		// 	.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(10)))
-		// 	.apply(new AllWindowFunction<Tuple2<Product, Product>, Double, TimeWindow>() {
-		// 		@Override
-		// 		public void apply(TimeWindow window, Iterable<Tuple2<Product, Product>> products, Collector<Double> out) {
-		// 			double sum = 0.0;
-		// 			for (Tuple2<Product, Product> tuple : products) {
-		// 				sum += tuple.f0.getPrice() + tuple.f1.getPrice();
-		// 			}
-		// 			out.collect(sum);
-		// 		}
-		// 	})
-		// 	.name("Apply: Sum over prices");
-
-		// sumOfPrices.print();
+		sumOfPrices.print();
 
 		env.execute("Flink Data Aggregation");
 	}
