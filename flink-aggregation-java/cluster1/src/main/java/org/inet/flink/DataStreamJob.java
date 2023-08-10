@@ -18,6 +18,7 @@ import org.apache.flink.streaming.api.functions.ProcessFunction.Context;
 import org.apache.flink.streaming.api.functions.windowing.ProcessAllWindowFunction;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
+import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
 
 
 import java.time.Duration;
@@ -73,8 +74,9 @@ public class DataStreamJob {
 			.filter(product -> product.getName().equals("Lemon"))
 			.name("Filter: By Product name Lemon");
 
+		// Prints number of products
 		DataStream<String> countPerWindow = products
-			.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(5)))
+			.windowAll(SlidingEventTimeWindows.of(Time.seconds(30), Time.seconds(5)))
 			.apply(new AllWindowFunction<Product, Long, TimeWindow>() {
 				public void apply(TimeWindow window, Iterable<Product> products, Collector<Long> out) throws Exception {
 					long count = 0;
@@ -85,7 +87,7 @@ public class DataStreamJob {
 				}
 			})
 			.name("Apply: Counting products")
-			.map(count -> "Products: " + Math.round(count/5) + " records/s")
+			.map(count -> "Products: " + Math.round(count/30) + " records/s")
 			.name("Map: Formatted product count");
 		
 		countPerWindow.print();
@@ -102,7 +104,7 @@ public class DataStreamJob {
 			.map(price -> "Price: " + price + " €/s")
 			.name("Map: Formatted price");
 
-		prices.print();
+		// prices.print();
 
 		// Change the argument for alternative delays (1-15)
 		Delay delay = new Delay(3);
