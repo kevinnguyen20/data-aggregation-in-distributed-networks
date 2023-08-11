@@ -46,6 +46,9 @@ public class DataStreamJob {
 			20, // Number of restart attempts
 			1000L // Delay between restarts
 		));
+		env.setParallelism(4);
+		// env.enableCheckpointing(60000);
+		// env.getCheckpointConfig().setTolerableCheckpointFailureNumber(5);
 
 		// Assign values to the field variables
 		loadProperties();
@@ -56,8 +59,9 @@ public class DataStreamJob {
 
 		// Receive data from data generator
 		KafkaSource<String> dataGeneratorSource = createKafkaSource(CONSUMER_TOPIC);
+		WatermarkStrategy watermarkStrategy = WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(2)).withIdleness(Duration.ofSeconds(15));
 		DataStream<String> streamSource = env.fromSource(dataGeneratorSource,
-		WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(2)), "Kafka Data Generator");
+		watermarkStrategy, "Kafka Data Generator");
 
 		// Uncomment to use the file source (Kafka not needed)
 		// WatermarkStrategy.forMonotonousTimestamps(), "Kafka Data Generator");
@@ -102,7 +106,7 @@ public class DataStreamJob {
 			.map(price -> "Price: " + price + " €/s")
 			.name("Map: Formatted price");
 
-		prices.print();
+		// prices.print();
 
 		// Change the argument for alternative delays (1-15)
 		Delay delay = new Delay(3);

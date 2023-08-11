@@ -36,10 +36,10 @@ public class DataStreamJob {
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
 		env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
-			20, // Number of restart attempts
+			40, // Number of restart attempts
 			1000L // Delay between restarts
 		));
-
+		env.setParallelism(4);
 		// Assigns values to the field variables
 		loadProperties();
 
@@ -49,8 +49,9 @@ public class DataStreamJob {
 
 		// Receive data from data generator
 		KafkaSource<String> dataGeneratorSource = createKafkaSource(CONSUMER_TOPIC_2, "data-generator");
+		WatermarkStrategy watermarkStrategy = WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(2)).withIdleness(Duration.ofSeconds(15));
 		DataStream<String> streamSource = env.fromSource(dataGeneratorSource,
-		WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(2)), "Kafka Data Generator");
+		watermarkStrategy, "Kafka Data Generator");
 
 		// Uncomment to use the file source (Kafka not needed)
 		// DataStream<String> streamSource = env.readTextFile("../../../../../../../../records/output2.txt");
@@ -64,7 +65,8 @@ public class DataStreamJob {
 
 		// Start receiving data from first cluster
 		KafkaSource<String> firstClusterSource = createKafkaSource(CLUSTER_COMMUNICATION_TOPIC, "data-between-clusters");
-		DataStream<String> dataFromFirstCluster = env.fromSource(firstClusterSource, WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(2)), "First Cluster Data");
+		WatermarkStrategy watermarkStrategy2 = WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(2)).withIdleness(Duration.ofSeconds(15));
+		DataStream<String> dataFromFirstCluster = env.fromSource(firstClusterSource, watermarkStrategy2, "First Cluster Data");
 
 		// Filter data from first cluster by name and price
 		DataStream<Product> productsFromFirstCluster = dataFromFirstCluster
@@ -105,7 +107,7 @@ public class DataStreamJob {
 			.map(price -> "Price: " + price + " €/s")
 			.name("Map: Formatted price");
 
-		sumOfPrices.print();
+		// sumOfPrices.print();
 
 		env.execute("Flink Data Aggregation");
 	}
