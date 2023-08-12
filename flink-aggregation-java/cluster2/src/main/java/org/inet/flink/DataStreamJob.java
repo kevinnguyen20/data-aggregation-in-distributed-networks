@@ -39,7 +39,7 @@ public class DataStreamJob {
 			40, // Number of restart attempts
 			1000L // Delay between restarts
 		));
-		env.setParallelism(4);
+		// env.setParallelism(4);
 		// Assigns values to the field variables
 		loadProperties();
 

@@ -46,7 +46,7 @@ public class DataStreamJob {
 			20, // Number of restart attempts
 			1000L // Delay between restarts
 		));
-		env.setParallelism(4);
+		// env.setParallelism(4);
 		// env.enableCheckpointing(60000);
 		// env.getCheckpointConfig().setTolerableCheckpointFailureNumber(5);
 

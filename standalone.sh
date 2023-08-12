@@ -3,6 +3,12 @@
 # Read variables from config file
 source config.sh
 
+setParallelism() {
+    configFile="$FLINK_HOME/conf/flink-conf.yaml"
+    sed -i "s/taskmanager.numberOfTaskSlots: [0-9]*$/taskmanager.numberOfTaskSlots: $PARALLELISM/" "$configFile"
+    sed -i "s/parallelism.default: [0-9]*$/parallelism.default: $PARALLELISM/" "$configFile"
+}
+
 adjustConfigForSecondCluster() {
     sed -i '1s/:[0-9]\{4\}$/:8091/' "$FLINK_HOME_2/conf/masters"
 
@@ -52,6 +58,7 @@ if [[ "$1" = "start" ]]; then
     startDataGenerators
 
     # Start the Flink cluster
+    setParallelism
     "$FLINK_HOME/bin/start-cluster.sh" > /dev/null 2>&1 & # Start the first cluster
     # Uncomment in case the datagen.py (written in Python) is used as data
     # generator
