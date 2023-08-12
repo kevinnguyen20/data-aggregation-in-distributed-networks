@@ -33,15 +33,20 @@ copyAndRenameFile() {
 startDataGenerators() {
     # python3 ./data-generators/datagen.py 1 &
     # python3 ./data-generators/datagen.py 2 &
-    python3 ./data-generators/continuousData.py 1 2 &
-    python3 ./data-generators/continuousData.py 2 3 &
+    # python3 ./data-generators/continuousData.py 1 2 &
+    # python3 ./data-generators/continuousData.py 2 3 &
+    gcc -o ./data-generators/continuousData ./data-generators/continuousData.c -lrdkafka -lcjson
+    ./data-generators/continuousData 1 2 &
+    ./data-generators/continuousData 2 3 &
 }
 
 stopDataGenerators() {
     # pkill -f "python3 ./data-generators/datagen.py 1"
     # pkill -f "python3 ./data-generators/datagen.py 2"
-    pkill -f "./data-generators/continuousData.py 1 2"
-    pkill -f "./data-generators/continuousData.py 2 3"
+    # pkill -f "./data-generators/continuousData.py 1 2"
+    # pkill -f "./data-generators/continuousData.py 2 3"
+    pkill -f "./data-generators/continuousData 1 2"
+    pkill -f "./data-generators/continuousData 2 3"
 }
 
 if [[ "$1" = "start" ]]; then
@@ -54,7 +59,7 @@ if [[ "$1" = "start" ]]; then
     # source ./delay.sh start
 
     # Start the data generators
-    sleep 5
+    sleep 10
     startDataGenerators
 
     # Start the Flink cluster
@@ -75,7 +80,7 @@ if [[ "$1" = "start" ]]; then
     "$FLINK_HOME_2/bin/flink" run "$FLINK_JOB_DIRECTORY_2/cluster2-1.0-SNAPSHOT.jar" &
 
     # Uncomment if you are too lazy to open the links by yourself
-    sleep 4
+    sleep 5
 
     xdg-open "http://localhost:8081" > /dev/null 2>&1 &
     xdg-open "http://localhost:8091" > /dev/null 2>&1 &
