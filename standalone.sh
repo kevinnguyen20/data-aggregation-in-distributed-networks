@@ -3,6 +3,12 @@
 # Read variables from config file
 source config.sh
 
+setParallelism() {
+    configFile="$FLINK_HOME/conf/flink-conf.yaml"
+    sed -i "s/taskmanager.numberOfTaskSlots: [0-9]*$/taskmanager.numberOfTaskSlots: $PARALLELISM/" "$configFile"
+    sed -i "s/parallelism.default: [0-9]*$/parallelism.default: $PARALLELISM/" "$configFile"
+}
+
 adjustConfigForSecondCluster() {
     sed -i '1s/:[0-9]\{4\}$/:8091/' "$FLINK_HOME_2/conf/masters"
 
@@ -27,15 +33,20 @@ copyAndRenameFile() {
 startDataGenerators() {
     # python3 ./data-generators/datagen.py 1 &
     # python3 ./data-generators/datagen.py 2 &
-    python3 ./data-generators/continuousData.py 1 2 &
-    python3 ./data-generators/continuousData.py 2 3 &
+    # python3 ./data-generators/continuousData.py 1 2 &
+    # python3 ./data-generators/continuousData.py 2 3 &
+    gcc -o ./data-generators/continuousData ./data-generators/continuousData.c -lrdkafka -lcjson
+    ./data-generators/continuousData 1 2 &
+    ./data-generators/continuousData 2 3 &
 }
 
 stopDataGenerators() {
     # pkill -f "python3 ./data-generators/datagen.py 1"
     # pkill -f "python3 ./data-generators/datagen.py 2"
-    pkill -f "./data-generators/continuousData.py 1 2"
-    pkill -f "./data-generators/continuousData.py 2 3"
+    # pkill -f "./data-generators/continuousData.py 1 2"
+    # pkill -f "./data-generators/continuousData.py 2 3"
+    pkill -f "./data-generators/continuousData 1 2"
+    pkill -f "./data-generators/continuousData 2 3"
 }
 
 if [[ "$1" = "start" ]]; then
@@ -48,12 +59,15 @@ if [[ "$1" = "start" ]]; then
     # source ./delay.sh start
 
     # Start the data generators
-    sleep 3
+    sleep 10
     startDataGenerators
 
     # Start the Flink cluster
+    setParallelism
     "$FLINK_HOME/bin/start-cluster.sh" > /dev/null 2>&1 & # Start the first cluster
-    # sleep 3
+    # Uncomment in case the datagen.py (written in Python) is used as data
+    # generator
+    # sleep 5
     copyAndRenameFile
     "$FLINK_HOME_2/bin/start-cluster.sh" > /dev/null 2>&1 &
 
@@ -61,16 +75,15 @@ if [[ "$1" = "start" ]]; then
     # "$FLINK_HOME/bin/flink" run
     # "$FLINK_JOB_DIRECTORY/cluster1-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
     "$FLINK_HOME/bin/flink" run "$FLINK_JOB_DIRECTORY/cluster1-1.0-SNAPSHOT.jar" &
-    # sleep 5
     # "$FLINK_HOME_2/bin/flink" run
     # "$FLINK_JOB_DIRECTORY_2/cluster2-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
     "$FLINK_HOME_2/bin/flink" run "$FLINK_JOB_DIRECTORY_2/cluster2-1.0-SNAPSHOT.jar" &
 
-# Uncomment if you are too lazy to open the links by yourself
-   sleep 4
+    # Uncomment if you are too lazy to open the links by yourself
+    sleep 5
 
-   xdg-open "http://localhost:8081" > /dev/null 2>&1 &
-   xdg-open "http://localhost:8091" > /dev/null 2>&1 &
+    xdg-open "http://localhost:8081" > /dev/null 2>&1 &
+    xdg-open "http://localhost:8091" > /dev/null 2>&1 &
 fi
 
 if [[ "$1" = "stop" ]]; then

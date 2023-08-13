@@ -2,7 +2,6 @@ import random
 import time
 import json
 import sys
-#from kafka import KafkaProducer #uncomment whatever works for you
 from kafka3 import KafkaProducer
 
 def generate_data(kafka_bootstrap_servers, producer_topic, total_records, number_of_cluster):

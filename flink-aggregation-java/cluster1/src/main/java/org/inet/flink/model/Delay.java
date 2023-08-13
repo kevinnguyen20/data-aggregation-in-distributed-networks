@@ -16,14 +16,11 @@ public class Delay implements Serializable {
     private double maxDelay;
     private double mdevDelay;
 
-    public Delay() {
+    public Delay(int lineIndex) {
         try (BufferedReader reader = new BufferedReader(new FileReader(Paths.get("").toAbsolutePath().toString()+"/delays.txt"))) {
             String line;
             // Skip the header line
             // reader.readLine();
-    
-            // Change this line to use another delay
-            int lineIndex = 3;
     
             // Read the lines and extract the delay data
             int currentLine = 0;
@@ -45,23 +42,21 @@ public class Delay implements Serializable {
         }
     }
     
-
+    // Delay in ms
     public double calculateDelay() {
         Random random = new Random();
-        double probability = 1.0 / 500.0;
+        double probability = 1.0 / 5.0;
         if (random.nextDouble()<probability) {
             double gaussian = random.nextGaussian() * this.mdevDelay + this.avgDelay;
             double delay = Math.min(this.maxDelay, Math.max(this.minDelay, gaussian));
-            // return delay / 2.0 / 1000.0;
+            System.out.println("Delay: " + (double) Math.round(delay/2*100)/100 + " ms");
             return delay / 2.0;
         } else {
-            // No delay with 1/500 probability
+            // No delay with 4/5 probability
             return 0.0;
         }
     }
     
-    
-
     public double getMinDelay() {
         return minDelay;
     }

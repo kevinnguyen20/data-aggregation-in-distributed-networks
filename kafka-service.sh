@@ -12,9 +12,9 @@ if [[ "$1" = "start" ]]; then
     bin/kafka-server-start.sh config/server.properties > /dev/null 2>&1 &
 
     # Create a topic
-    bin/kafka-topics.sh --create --topic "$CONSUMER_TOPIC" --bootstrap-server "$KAFKA_BOOTSTRAP_SERVERS" > /dev/null 2>&1 &
-    bin/kafka-topics.sh --create --topic "$CONSUMER_TOPIC_2" --bootstrap-server "$KAFKA_BOOTSTRAP_SERVERS" > /dev/null 2>&1 &
-    bin/kafka-topics.sh --create --topic "$CONSUMER_TOPIC_CLUSTERS" --bootstrap-server "$KAFKA_BOOTSTRAP_SERVERS" > /dev/null 2>&1 &
+    bin/kafka-topics.sh --create --topic "$CONSUMER_TOPIC" --partitions "$PARALLELISM" --bootstrap-server "$KAFKA_BOOTSTRAP_SERVERS" > /dev/null 2>&1 &
+    bin/kafka-topics.sh --create --topic "$CONSUMER_TOPIC_2" --partitions "$PARALLELISM" --bootstrap-server "$KAFKA_BOOTSTRAP_SERVERS" > /dev/null 2>&1 &
+    bin/kafka-topics.sh --create --topic "$CONSUMER_TOPIC_CLUSTERS" --partitions "$PARALLELISM" --bootstrap-server "$KAFKA_BOOTSTRAP_SERVERS" > /dev/null 2>&1 &
 fi
 
 if [[ "$1" = "stop" ]]; then

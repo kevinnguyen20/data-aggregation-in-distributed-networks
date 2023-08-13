@@ -9,7 +9,7 @@ import java.util.Properties;
 
 public class DataGenerator {
     private final KafkaProducer<String, String> producer;
-    private final List<String> productNames;
+    private final List<String> productNames = Arrays.asList("Apple", "Banana", "Lemon", "Cherry", "Melon", "Peach", "Grapefruit");
 
     public DataGenerator(String kafkaBootstrapServers) {
         Properties props = new Properties();
@@ -18,16 +18,17 @@ public class DataGenerator {
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 
         producer = new KafkaProducer<>(props);
-        productNames = Arrays.asList("Apple", "Banana", "Lemon", "Cherry", "Melon", "Peach", "Grapefruit");
     }
 
     public void generateData(String producerTopic) throws InterruptedException {
         long startTime = System.currentTimeMillis();
 
+        // The "batchSize" controls the amount of records sent to the Apache
+        // Flink cluster. This approach is bounded.
         int batchSize = 10000000;
         Random random = new Random();
 
-        for (int i = 1; i <= batchSize; i++) {
+        for (int i=1; i<=batchSize; i++) {
             String recordValue = toJson(i, getRandomProductName(random), assignRandomPrice(random));
             sendMessage(producerTopic, recordValue);
         }
@@ -35,7 +36,7 @@ public class DataGenerator {
         // This could be used for debugging purposes
         long endTime = System.currentTimeMillis();
 		long elapsedTime = endTime - startTime;
-		String recordValue = toJson(elapsedTime);
+		String recordValue = toJson(0, "Elapsed time", elapsedTime);
 
         sendMessage(producerTopic, recordValue);
 		
@@ -45,11 +46,7 @@ public class DataGenerator {
 
     private static String toJson(int id, String productName, double price) {
         String formattedPrice = String.format("%.2f", price);
-        return "{\"id\": " + id + ", \"name\": \"" + productName + "\", \"price\": " + formattedPrice + "}";
-    }
-
-    private static String toJson(long elapsedTime) {
-        return "{\"id\": " + 0 + ", \"name\": \"Elapsed time\", \"price\":" + elapsedTime + "}";
+        return String.format("{\"id\": %d, \"name\": \"%s\", \"price\": %s}", id, productName, formattedPrice);
     }
 
     private void sendMessage(String producerTopic, String recordValue) {
@@ -57,7 +54,7 @@ public class DataGenerator {
         producer.send(record, new Callback() {
             @Override
             public void onCompletion(RecordMetadata metadata, Exception e) {
-                if (e != null) {
+                if (e!=null) {
                     System.out.println(e.getMessage());
                 }
             }
