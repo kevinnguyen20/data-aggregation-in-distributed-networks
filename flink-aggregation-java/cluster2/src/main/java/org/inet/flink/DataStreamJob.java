@@ -40,6 +40,7 @@ public class DataStreamJob {
 			1000L // Delay between restarts
 		));
 		// env.setParallelism(4);
+
 		// Assigns values to the field variables
 		loadProperties();
 
