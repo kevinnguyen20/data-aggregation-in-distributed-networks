@@ -1,8 +1,18 @@
-FROM flink:1.17.0-scala_2.12-java11
-RUN apt-get update && apt-get install -y iproute2
+FROM ubuntu:22.04
 
-# Create a directory storing jobs
-RUN mkdir /root/jobs
+# Install necessary packages
+RUN apt-get update && \
+    apt-get install -y build-essential librdkafka-dev libssl-dev libcjson-dev && \
+    # Clear the cached package lists
+    rm -rf /var/lib/apt/lists/*
 
-# Create a job and copy it into the container
-COPY flink-aggregation-java/target/flink-aggregation-java-1.0-SNAPSHOT.jar /root/jobs
+# Create a directory in the container to copy files
+WORKDIR /app
+
+COPY continuousData.c cJSON.c cJSON.h delays.txt /app/
+COPY cJSON.h /usr/include/cjson/cJSON.h
+
+RUN gcc -o continuousData continuousData.c -lrdkafka -lcjson
+
+# Set the entry point for the container
+ENTRYPOINT ["./continuousData"]
