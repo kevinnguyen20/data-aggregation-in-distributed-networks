@@ -15,4 +15,4 @@ COPY cJSON.h /usr/include/cjson/cJSON.h
 RUN gcc -o continuousData continuousData.c -lrdkafka -lcjson
 
 # Set the entry point for the container
-ENTRYPOINT ["./continuousData"]
+# ENTRYPOINT ["./continuousData"]

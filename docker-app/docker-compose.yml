@@ -16,45 +16,126 @@ services:
     container_name: kafka
     ports:
       - "9092:9092"
+      - "29092:29092"
     environment:
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_LISTENERS=INTERNAL://:9092
-      - KAFKA_ADVERTISED_LISTENERS=INTERNAL://:9092
-      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT
+      - KAFKA_LISTENERS=INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092
+      - KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka:29092,EXTERNAL://localhost:9092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
       - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_NUM_PARTITIONS=${PARALLELISM}
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
-      - KAFKA_CREATE_TOPICS=${CONSUMER_TOPIC}
-      - KAFKA_ADVERTISED_HOST_NAME=host.docker.internal # change to 172.17.0.1 if running on Ubuntu
     depends_on:
       - zookeeper
     networks:
       - kafka-network
     # entrypoint: |
     #   sh -c "\
-    #     kafka-topics.sh --create \
+    #     /bin/kafka-topics --create \
     #     --topic ${CONSUMER_TOPIC} \
     #     --partitions ${PARALLELISM} \
-    #     --replication-factor 1 \
-    #     --bootstrap-server ${KAFKA_BOOTSTRAP_SERVERS} \
+    #     --bootstrap-server kafka:29092 \
     #     --if-not-exists && \
-    #     exec kafka-server-start.sh /opt/bitnami/kafka/config/server.properties"
+    #     /bin/kafka-topics --create \
+    #     --topic ${CONSUMER_TOPIC_2} \
+    #     --partitions ${PARALLELISM} \
+    #     --bootstrap-server kafka:29092 \
+    #     --if-not-exists && \
+    #     exec /bin/kafka-server-start"
 
-  c-producer:
+  c-producer1:
     build:
-      context: .
+      context: ./data-generators
       dockerfile: Dockerfile
-    container_name: c-producer
+    container_name: c-producer1
     depends_on:
       - kafka
     networks:
       - kafka-network
-    command: ["1", "2"]
+      - flink-network-1
+    command: ["sh", "-c", "sleep 15 && ./continuousData 1 2"]
+
+  c-producer2:
+    build:
+      context: ./data-generators
+      dockerfile: Dockerfile
+    container_name: c-producer2
+    depends_on:
+      - kafka
+    networks:
+      - kafka-network
+      - flink-network-2
+    command: ["sh", "-c", "sleep 15 && ./continuousData 2 3"]
+
+  jobmanager1:
+    image: flink:1.17.1-scala_2.12
+    container_name: flink-jobmanager1
+    ports:
+      - "8081:8081"
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+    command: jobmanager
+    networks:
+      - kafka-network
+      - flink-network-1
+
+  taskmanager1:
+    image: flink:1.17.1-scala_2.12
+    container_name: flink-taskmanager1
+    depends_on:
+      - jobmanager1
+    command: taskmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: ${PARALLELISM}
+    networks:
+      - kafka-network
+      - flink-network-1
+
+  jobmanager2:
+    image: flink:1.17.1-scala_2.12
+    container_name: flink-jobmanager2
+    ports:
+      - "8091:8091"
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: 6127
+    command: jobmanager
+    networks:
+      - kafka-network
+      - flink-network-2
+
+  taskmanager2:
+    image: flink:1.17.1-scala_2.12
+    container_name: flink-taskmanager2
+    depends_on:
+      - jobmanager2
+    command: taskmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: 6127
+        taskmanager.numberOfTaskSlots: ${PARALLELISM}
+    networks:
+      - kafka-network
+      - flink-network-2
 
 networks:
   kafka-network:
+    driver: bridge
+  flink-network-1:
+    driver: bridge
+  flink-network-2:
     driver: bridge
 
 # sudo docker run -it --rm --network docker-app_kafka-network confluentinc/cp-kafka:7.2.6 /bin/kafka-console-producer --bootstrap-server kafka:9092 --topic flink-kafka-topic
 
 # sudo docker container exec -it kafka /bin/bash
 # kafka-console-consumer --bootstrap-server localhost:9092 --topic flink-kafka-topic -from-beginning
+
+# kafka-console-consumer --bootstrap-server kafka:29092 --topic flink-kafka-topic -from-beginning

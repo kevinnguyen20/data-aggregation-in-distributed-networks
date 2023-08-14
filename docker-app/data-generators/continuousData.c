@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
     // }
 
     // Validate the line index
-    FILE* file = fopen("delays.txt", "r");
+    FILE* file = fopen("../delays.txt", "r");
     if (file==NULL) {
         fprintf(stderr, "Failed to open '../delays.txt'\n");
         return 1;
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    const char* kafka_bootstrap_servers = "kafka:9092";
+    const char* kafka_bootstrap_servers = "kafka:29092";
     const char* producer_topic = (number_of_cluster == 1) ? "flink-kafka-topic" : "flink-kafka-topic-2";
 
     generate_data(kafka_bootstrap_servers, producer_topic, line_index, number_of_cluster);
