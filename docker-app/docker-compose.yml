@@ -69,6 +69,9 @@ services:
 
   jobmanager1:
     image: flink:1.17.1-scala_2.12
+    # build:
+    #   context: ./flink-cluster
+    #   dockerfile: Dockerfile
     container_name: flink-jobmanager1
     ports:
       - "8081:8081"
@@ -85,6 +88,9 @@ services:
 
   taskmanager1:
     image: flink:1.17.1-scala_2.12
+    # build:
+    #   context: ./flink-cluster
+    #   dockerfile: Dockerfile
     container_name: flink-taskmanager1
     depends_on:
       - jobmanager1
@@ -93,12 +99,17 @@ services:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager1
+        taskmanager.numberOfTaskSlots: ${PARALLELISM}
+        parallelism.default: ${PARALLELISM}
     networks:
       - kafka-network
       - flink-network-1
 
   jobmanager2:
     image: flink:1.17.1-scala_2.12
+    # build:
+    #   context: ./flink-cluster
+    #   dockerfile: Dockerfile
     container_name: flink-jobmanager2
     ports:
       - "8091:8081"
@@ -115,6 +126,9 @@ services:
 
   taskmanager2:
     image: flink:1.17.1-scala_2.12
+    # build:
+    #   context: ./flink-cluster
+    #   dockerfile: Dockerfile
     container_name: flink-taskmanager2
     depends_on:
       - jobmanager2
@@ -123,6 +137,8 @@ services:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager2
+        taskmanager.numberOfTaskSlots: ${PARALLELISM}
+        parallelism.default: ${PARALLELISM}
     networks:
       - kafka-network
       - flink-network-2
