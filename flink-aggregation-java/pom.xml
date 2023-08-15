@@ -18,7 +18,7 @@
 
     <properties>
         <target.java.version>1.8</target.java.version>
-        <flink.version>1.17.0</flink.version>
+        <flink.version>1.17.1</flink.version>
         <log4j.version>2.17.1</log4j.version>
     </properties>
 
