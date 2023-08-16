@@ -4,6 +4,7 @@
 #include <time.h>
 #include <signal.h>
 #include <unistd.h>
+#include <math.h>
 #include <librdkafka/rdkafka.h>
 #include <cjson/cJSON.h>
 
@@ -47,7 +48,7 @@ char* generate_product_json(const Product* product) {
     return json_str;
 }
 
-void extract_data(int line_index, char* lines[], float* min_delay, float* avg_delay, float* max_delay, float* mdev_delay) {
+void extract_data(int line_index, char* lines[], double* min_delay, double* avg_delay, double* max_delay, double* mdev_delay) {
     char* line = lines[line_index];
     // Parse the line into parts
     char* parts[6];
@@ -63,7 +64,19 @@ void extract_data(int line_index, char* lines[], float* min_delay, float* avg_de
     *mdev_delay = atof(parts[5]);
 }
 
-void generate_data(const char* kafka_bootstrap_servers, const char* topic, int line_index, int number_of_cluster) {
+double random_gauss(double mean, double stddev) {
+    double u, v, s;
+    do {
+        u = (rand() / ((double)RAND_MAX)) * 2.0 - 1.0;
+        v = (rand() / ((double)RAND_MAX)) * 2.0 - 1.0;
+        s = u * u + v * v;
+    } while (s >= 1.0 || s == 0.0);
+
+    s = sqrt((-2.0 * log(s)) / s);
+    return u * s * stddev + mean;
+}
+
+void generate_data(const char* kafka_bootstrap_servers, const char* topic, int line_index, char* lines[], int number_of_cluster) {
     rd_kafka_t* producer;
     rd_kafka_conf_t* conf;
     rd_kafka_conf_res_t res;
@@ -99,8 +112,22 @@ void generate_data(const char* kafka_bootstrap_servers, const char* topic, int l
     // Configuration object is now owned by the producer
     conf = NULL;
 
+    // Define delay according to the server's location
+    double min_delay = 0.0;
+    double avg_delay = 0.0;
+    double max_delay = 0.0;
+    double mdev_delay = 0.0;
+
+    extract_data(line_index, lines, &min_delay, &avg_delay, &max_delay, &mdev_delay);
+    double delay = random_gauss(avg_delay, mdev_delay);
+    delay = fmax(min_delay, fmin(delay, max_delay));
+    double time_for_sleep = delay / 2000;
+    printf("Delay for cluster %d - %.6f seconds\n", number_of_cluster, time_for_sleep);
+
     // Loop to produce data
     int i = 1;
+    int window_size = 1000; // Number of records sent between each delay before sending a record
+
     // int messages_sent = 0;
     // time_t start_time = time(NULL);
     // srand(start_time); // Seed the random number generator
@@ -120,6 +147,9 @@ void generate_data(const char* kafka_bootstrap_servers, const char* topic, int l
 
         free(json_record);
 
+        if (i == window_size) {
+            sleep(time_for_sleep);
+        }
         i++;
         // messages_sent++;
 
@@ -170,24 +200,44 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "Failed to open '../delays.txt'\n");
         return 1;
     }
-
-    char buffer[256];
-    int line_count = 0;
-    while (fgets(buffer, sizeof(buffer), file)) {
+    
+    char **lines = NULL;
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    size_t line_count = 0;
+    
+    // Read lines from the file
+    while ((read = getline(&line, &len, file)) != -1) {
+        lines = realloc(lines, (line_count + 1) * sizeof(char *));
+        if (lines == NULL) {
+            perror("Memory allocation failed");
+            return 1;
+        }
+        
+        lines[line_count] = line;
+        line = NULL; // Clear the line pointer for the next iteration
         line_count++;
     }
-
+    
+    // Close the file
     fclose(file);
 
     if (line_index<1 || line_index>=line_count) {
-        fprintf(stderr, "Invalid line index. Please choose a number between 1 and %d\n", line_count-1);
+        fprintf(stderr, "Invalid line index. Please choose a number between 1 and %ld\n", line_count-1);
         return 1;
     }
 
     const char* kafka_bootstrap_servers = "localhost:9092";
     const char* producer_topic = (number_of_cluster == 1) ? "flink-kafka-topic" : "flink-kafka-topic-2";
 
-    generate_data(kafka_bootstrap_servers, producer_topic, line_index, number_of_cluster);
+    generate_data(kafka_bootstrap_servers, producer_topic, line_index, lines, number_of_cluster);
+
+    for (size_t i = 0; i < line_count; i++) {
+        free(lines[i]); // Free the memory allocated for each line
+    }
+    
+    free(lines); // Free the array of lines
 
     return 0;
 }

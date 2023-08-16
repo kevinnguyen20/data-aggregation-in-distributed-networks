@@ -22,7 +22,7 @@ def generate_data(kafka_bootstrap_servers, producer_topic, line_index, lines, nu
     )
 
     product_names = ["Apple", "Banana", "Lemon", "Cherry", "Melon", "Peach", "Grapefruit"]
-    window_size = 10000 # Number of records sent between each measurement of current throughput 
+    window_size = 10000 # Number of records sent between each delay before sending a record
 
     # Define delay according to the server's location
     min_delay, avg_delay, max_delay, mdev_delay = extract_data(line_index, lines)
