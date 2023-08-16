@@ -29,25 +29,12 @@ services:
       - zookeeper
     networks:
       - kafka-network
-    # entrypoint: |
-    #   sh -c "\
-    #     /bin/kafka-topics --create \
-    #     --topic ${CONSUMER_TOPIC} \
-    #     --partitions ${PARALLELISM} \
-    #     --bootstrap-server kafka:29092 \
-    #     --if-not-exists && \
-    #     /bin/kafka-topics --create \
-    #     --topic ${CONSUMER_TOPIC_2} \
-    #     --partitions ${PARALLELISM} \
-    #     --bootstrap-server kafka:29092 \
-    #     --if-not-exists && \
-    #     exec /bin/kafka-server-start"
 
-  c-producer1:
+  c-producer-1:
     build:
       context: ./data-generators
       dockerfile: Dockerfile
-    container_name: c-producer1
+    container_name: c-producer-1
     depends_on:
       - kafka
     networks:
@@ -55,11 +42,11 @@ services:
       - flink-network-1
     command: ["sh", "-c", "sleep 15 && ./continuousData 1 2"]
 
-  c-producer2:
+  c-producer-2:
     build:
       context: ./data-generators
       dockerfile: Dockerfile
-    container_name: c-producer2
+    container_name: c-producer-2
     depends_on:
       - kafka
     networks:
@@ -67,18 +54,15 @@ services:
       - flink-network-2
     command: ["sh", "-c", "sleep 15 && ./continuousData 2 3"]
 
-  jobmanager1:
+  jobmanager-1:
     image: flink:1.17.1-scala_2.12
-    # build:
-    #   context: ./flink-cluster
-    #   dockerfile: Dockerfile
-    container_name: flink-jobmanager1
+    container_name: flink-jobmanager-1
     ports:
       - "8081:8081"
     environment:
       - |
         FLINK_PROPERTIES=
-        jobmanager.rpc.address: jobmanager1
+        jobmanager.rpc.address: jobmanager-1
         taskmanager.numberOfTaskSlots: ${PARALLELISM}
         parallelism.default: ${PARALLELISM}
     command: jobmanager
@@ -86,37 +70,31 @@ services:
       - kafka-network
       - flink-network-1
 
-  taskmanager1:
+  taskmanager-1:
     image: flink:1.17.1-scala_2.12
-    # build:
-    #   context: ./flink-cluster
-    #   dockerfile: Dockerfile
-    container_name: flink-taskmanager1
+    container_name: flink-taskmanager-1
     depends_on:
-      - jobmanager1
+      - jobmanager-1
     command: taskmanager
     environment:
       - |
         FLINK_PROPERTIES=
-        jobmanager.rpc.address: jobmanager1
+        jobmanager.rpc.address: jobmanager-1
         taskmanager.numberOfTaskSlots: ${PARALLELISM}
         parallelism.default: ${PARALLELISM}
     networks:
       - kafka-network
       - flink-network-1
 
-  jobmanager2:
+  jobmanager-2:
     image: flink:1.17.1-scala_2.12
-    # build:
-    #   context: ./flink-cluster
-    #   dockerfile: Dockerfile
-    container_name: flink-jobmanager2
+    container_name: flink-jobmanager-2
     ports:
       - "8091:8081"
     environment:
       - |
         FLINK_PROPERTIES=
-        jobmanager.rpc.address: jobmanager2
+        jobmanager.rpc.address: jobmanager-2
         taskmanager.numberOfTaskSlots: ${PARALLELISM}
         parallelism.default: ${PARALLELISM}
     command: jobmanager
@@ -124,19 +102,16 @@ services:
       - kafka-network
       - flink-network-2
 
-  taskmanager2:
+  taskmanager-2:
     image: flink:1.17.1-scala_2.12
-    # build:
-    #   context: ./flink-cluster
-    #   dockerfile: Dockerfile
-    container_name: flink-taskmanager2
+    container_name: flink-taskmanager-2
     depends_on:
-      - jobmanager2
+      - jobmanager-2
     command: taskmanager
     environment:
       - |
         FLINK_PROPERTIES=
-        jobmanager.rpc.address: jobmanager2
+        jobmanager.rpc.address: jobmanager-2
         taskmanager.numberOfTaskSlots: ${PARALLELISM}
         parallelism.default: ${PARALLELISM}
     networks:
@@ -150,10 +125,3 @@ networks:
     driver: bridge
   flink-network-2:
     driver: bridge
-
-# sudo docker run -it --rm --network docker-app_kafka-network confluentinc/cp-kafka:7.2.6 /bin/kafka-console-producer --bootstrap-server kafka:9092 --topic flink-kafka-topic
-
-# sudo docker container exec -it kafka /bin/bash
-# kafka-console-consumer --bootstrap-server localhost:9092 --topic flink-kafka-topic -from-beginning
-
-# kafka-console-consumer --bootstrap-server kafka:29092 --topic flink-kafka-topic -from-beginning

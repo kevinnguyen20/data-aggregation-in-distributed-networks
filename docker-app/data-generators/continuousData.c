@@ -165,9 +165,9 @@ int main(int argc, char* argv[]) {
     // }
 
     // Validate the line index
-    FILE* file = fopen("../delays.txt", "r");
+    FILE* file = fopen("delays.txt", "r");
     if (file==NULL) {
-        fprintf(stderr, "Failed to open '../delays.txt'\n");
+        fprintf(stderr, "Failed to open 'delays.txt'\n");
         return 1;
     }
 
