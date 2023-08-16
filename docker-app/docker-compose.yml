@@ -1,68 +1,127 @@
+version: '3.8'
+
 services:
-  jobmanager-1:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: jobmanager-1
-    networks:
-      - flink-network-1
+  zookeeper:
+    image: zookeeper:3.7.1-temurin
+    container_name: zookeeper
     ports:
-      - '8081:8081'
-    command: jobmanager
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    networks:
+      - kafka-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.2.6
+    container_name: kafka
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENERS=INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092
+      - KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka:29092,EXTERNAL://localhost:9092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_NUM_PARTITIONS=${PARALLELISM}
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+    depends_on:
+      - zookeeper
+    networks:
+      - kafka-network
+
+  c-producer-1:
+    build:
+      context: ./data-generators
+      dockerfile: Dockerfile
+    container_name: c-producer-1
+    depends_on:
+      - kafka
+    networks:
+      - kafka-network
+      - flink-network-1
+    command: ["sh", "-c", "sleep 15 && ./continuousData 1 2"]
+
+  c-producer-2:
+    build:
+      context: ./data-generators
+      dockerfile: Dockerfile
+    container_name: c-producer-2
+    depends_on:
+      - kafka
+    networks:
+      - kafka-network
+      - flink-network-2
+    command: ["sh", "-c", "sleep 15 && ./continuousData 2 3"]
+
+  jobmanager-1:
+    image: flink:1.17.1-scala_2.12
+    container_name: flink-jobmanager-1
+    ports:
+      - "8081:8081"
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager-1
-      
+        taskmanager.numberOfTaskSlots: ${PARALLELISM}
+        parallelism.default: ${PARALLELISM}
+    command: jobmanager
+    networks:
+      - kafka-network
+      - flink-network-1
+
   taskmanager-1:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: flink:1.17.1-scala_2.12
+    container_name: flink-taskmanager-1
     depends_on:
       - jobmanager-1
-    deploy:
-      replicas: 1
-    networks:
-      - flink-network-1
     command: taskmanager
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager-1
-        taskmanager.numberOfTaskSlots: 2
+        taskmanager.numberOfTaskSlots: ${PARALLELISM}
+        parallelism.default: ${PARALLELISM}
+    networks:
+      - kafka-network
+      - flink-network-1
 
   jobmanager-2:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: jobmanager-2
-    networks:
-      - flink-network-2
+    image: flink:1.17.1-scala_2.12
+    container_name: flink-jobmanager-2
     ports:
-      - '8082:8081'  # Use a different host port for the second JobManager
-    command: jobmanager
+      - "8091:8081"
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager-2
-      
+        taskmanager.numberOfTaskSlots: ${PARALLELISM}
+        parallelism.default: ${PARALLELISM}
+    command: jobmanager
+    networks:
+      - kafka-network
+      - flink-network-2
+
   taskmanager-2:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: flink:1.17.1-scala_2.12
+    container_name: flink-taskmanager-2
     depends_on:
       - jobmanager-2
-    deploy:
-      replicas: 1
-    networks:
-      - flink-network-2
     command: taskmanager
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager-2
-        taskmanager.numberOfTaskSlots: 2
+        taskmanager.numberOfTaskSlots: ${PARALLELISM}
+        parallelism.default: ${PARALLELISM}
+    networks:
+      - kafka-network
+      - flink-network-2
 
 networks:
+  kafka-network:
+    driver: bridge
   flink-network-1:
+    driver: bridge
   flink-network-2:
+    driver: bridge

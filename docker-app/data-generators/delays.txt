@@ -1,0 +1,16 @@
+Country, Domain name, minimum, average, maximum, mean deviation (ms)
+Germany, de-dofr.metercdn.net, 17.957, 18.385, 19.062, 0.484
+Netherlands, nl-hostzealot.metercdn.net, 17.732, 18.192, 18.699, 0.353
+United Kingdom, gb-ln.metercdn.net, 37.225, 37.503, 37.808, 0.188
+Italy, it-ed.metercdn.net, 24.554, 25.215, 25.675, 0.318
+Russia, ru-ed2.metercdn.net, 54.207, 54.507, 54.899, 0.187
+Israel, il-ta.metercdn.net, 75.311, 76.147, 78.024, 0.692
+Saudi Arabia, sa-edgeuno.metercdn.com, 101.493, 102.217, 104.890, 0.930
+Chile, cl-edgeuno.metercdn.com, 219.902, 220.441, 222.455, 0.732
+Brazil, br-euforta.metercdn.com, 196.576, 197.011, 197.660, 0.268
+India, inde-vltr.metercdn.net, 168.598, 169.519, 171.158, 0.781
+USA (Seattle), ussea-dedipath.metercdn.net, 162.898, 164.057, 170.114, 2.031
+Japan, jp-tk2.metercdn.net, 244.635, 245.143, 245.589, 0.256
+Singapore, sg-ed.metercdn.net, 243.232, 243.611, 244.373, 0.303
+USA (Honolulu), hw-vltr.metercdn.net, 197.939, 198.423, 199.050, 0.366
+Australia, au-ml-vltr.metercdn.net, 279.887, 280.197, 280.551, 0.235
