@@ -8,4 +8,5 @@ export KAFKA_BOOTSTRAP_SERVERS=localhost:9092
 export CONSUMER_TOPIC=flink-kafka-topic
 export CONSUMER_TOPIC_2=flink-kafka-topic-2
 export CONSUMER_TOPIC_CLUSTERS=flink-kafka-topic-clusters
-export PARALLELISM=
+export PARALLELISM=4
+export DOCKER_DEPLOYMENT=true
