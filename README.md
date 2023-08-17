@@ -26,6 +26,17 @@ sudo apt install librdkafka-dev
 sudo apt install libcjson-dev
 ```
 
+### Python (Optional)
+
+- Python 3.10.12: https://www.python.org/downloads/
+- pip: https://pip.pypa.io/en/stable/installation/
+
+```
+pip install kafka-python3
+```
+
+## Run the application
+
 1. You have to create a `config.sh` file from the `config.sh.template` and put the paths for your pc and place it in the root directory.
 2. Use the command `./standalone.sh start` to start everything. (the first time you execute it another flink directory for the second cluster will be created locally)
 3. At the end don't forget to execute the command `./standalone.sh stop` to stop everything.
