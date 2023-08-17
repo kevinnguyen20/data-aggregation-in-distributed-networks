@@ -8,6 +8,7 @@ In this project, we are using Apache Flink for executing queries in different ne
 
 ### Software
 
+- Java SE 11.0.19: https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html
 - Apache Kafka 2.12-3.4.1: https://kafka.apache.org/downloads
 - Apache Flink 1.17.1: https://flink.apache.org/downloads/
 - Apache Maven: https://maven.apache.org/download.cgi
