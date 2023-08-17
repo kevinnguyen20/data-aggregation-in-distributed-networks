@@ -5,4 +5,4 @@ flink-aggregation-java/cluster2/target
 records/
 data-generators/*.class
 data-generators/continuousData
-# docker-app/jobs/
+docker-app/jobs/
