@@ -31,6 +31,7 @@ copyAndRenameFile() {
 }
 
 startDataGenerators() {
+    cd "$PROJECT_HOME"
     # python3 ./data-generators/datagen.py 1 &
     # python3 ./data-generators/datagen.py 2 &
     # python3 ./data-generators/continuousData.py 1 2 &
@@ -41,6 +42,7 @@ startDataGenerators() {
 }
 
 stopDataGenerators() {
+    cd "$PROJECT_HOME"
     # pkill -f "python3 ./data-generators/datagen.py 1"
     # pkill -f "python3 ./data-generators/datagen.py 2"
     # pkill -f "./data-generators/continuousData.py 1 2"
@@ -54,7 +56,7 @@ if [[ "$1" = "start" ]]; then
     mvn clean package
 
     # Start Zookeeper and the Kafka broker
-    cd "$PROJECT_HOME" || exit
+    cd "$PROJECT_HOME/shell-scripts" || exit
     ./kafka-service.sh start
     # source ./delay.sh start
 
@@ -99,5 +101,6 @@ if [[ "$1" = "stop" ]]; then
 
     # Stop Zookeeper and the Kafka broker
     # source ./delay.sh stop
+    cd "$PROJECT_HOME/shell-scripts" || exit
     ./kafka-service.sh stop
 fi
