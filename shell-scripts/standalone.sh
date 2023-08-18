@@ -37,8 +37,8 @@ startDataGenerators() {
     # python3 ./data-generators/continuousData.py 1 2 &
     # python3 ./data-generators/continuousData.py 2 3 &
     gcc -o ./data-generators/continuousData ./data-generators/continuousData.c -lrdkafka -lcjson -lm
-    ./data-generators/continuousData 1 2 &
-    ./data-generators/continuousData 2 3 &
+    ./data-generators/continuousData 1 4 & # Change these numbers also below
+    ./data-generators/continuousData 2 7 &
 }
 
 stopDataGenerators() {
@@ -47,8 +47,8 @@ stopDataGenerators() {
     # pkill -f "python3 ./data-generators/datagen.py 2"
     # pkill -f "./data-generators/continuousData.py 1 2"
     # pkill -f "./data-generators/continuousData.py 2 3"
-    pkill -f "./data-generators/continuousData 1 2"
-    pkill -f "./data-generators/continuousData 2 3"
+    pkill -f "./data-generators/continuousData 1 4"
+    pkill -f "./data-generators/continuousData 2 7"
 }
 
 if [[ "$1" = "start" ]]; then
@@ -82,10 +82,10 @@ if [[ "$1" = "start" ]]; then
     "$FLINK_HOME_2/bin/flink" run "$FLINK_JOB_DIRECTORY_2/cluster2-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
 
     # Uncomment if you are too lazy to open the links by yourself
-    sleep 5
+    # sleep 5
 
-    xdg-open "http://localhost:8081" > /dev/null 2>&1 &
-    xdg-open "http://localhost:8091" > /dev/null 2>&1 &
+    # xdg-open "http://localhost:8081" > /dev/null 2>&1 &
+    # xdg-open "http://localhost:8091" > /dev/null 2>&1 &
 fi
 
 if [[ "$1" = "stop" ]]; then

@@ -128,9 +128,9 @@ void generate_data(const char* kafka_bootstrap_servers, const char* topic, int l
     int i = 1;
     int window_size = 1000; // Number of records sent between each delay before sending a record
 
-    // int messages_sent = 0;
-    // time_t start_time = time(NULL);
-    // srand(start_time); // Seed the random number generator
+    int messages_sent = 0;
+    time_t start_time = time(NULL);
+    srand(start_time); // Seed the random number generator
     while (run) {
         Product product = generate_product(i);
         char* json_record = generate_product_json(&product);
@@ -151,19 +151,19 @@ void generate_data(const char* kafka_bootstrap_servers, const char* topic, int l
             sleep(time_for_sleep);
         }
         i++;
-        // messages_sent++;
+        messages_sent++;
 
         // Check if 10 seconds have passed
-        // time_t current_time = time(NULL);
-        // if (current_time - start_time >= 10) {
-        //     double elapsed_time = (double)(current_time - start_time);
-        //     double throughput = (double)messages_sent / elapsed_time;
-        //     printf("Throughput: %.2f messages per second\n", throughput);
+        time_t current_time = time(NULL);
+        if (current_time - start_time >= 10) {
+            double elapsed_time = (double)(current_time - start_time);
+            double throughput = (double)messages_sent / elapsed_time;
+            printf("Throughput cluster %d: %.0f messages/sec\n", number_of_cluster, throughput);
 
-        //     // Reset counters
-        //     messages_sent = 0;
-        //     start_time = current_time;
-        // }
+            // Reset counters
+            messages_sent = 0;
+            start_time = current_time;
+        }
     }
 
     // Flush any outstanding messages
