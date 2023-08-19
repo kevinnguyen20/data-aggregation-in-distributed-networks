@@ -37,7 +37,19 @@ pip install kafka-python3
 
 ## Run the application
 
-1. You have to create a `config.sh` file from the `config.sh.template` and put the paths for your pc and place it in the root directory.
-2. In the ```docker-app``` folder you need a folder jobs where the jars for both clusters will be stored when using Docker. 
-3. Before starting the app, make sure that you have set the correct value for the variable ```DOCKER_DEPLOYMENT``` in the ```config.sh``` file depending on what environment you want to work with. Afterwards, you have to execute the command `./start.sh` which calls a script that starts the whole system. (the first time you execute it another flink directory for the second cluster will be created locally)
-4. At the end don't forget to execute the command `./stop.sh` to stop everything.
+1. You have to create a `config.sh` file from the `config.sh.template` and put the paths for your pc and place it in the `shell-scripts/` directory.
+2. In the ```docker-app``` folder you need a folder jobs where the jars for both clusters will be stored when using Docker.
+
+**Note**: Before starting the app, make sure that you have set the correct value for the variable ```DOCKER_DEPLOYMENT``` in the ```config.sh``` file depending on what environment you want to work with (`false` or `true`).
+
+From now on, it is only necessary to use two commands which are shown below:
+
+```
+./start.sh
+```
+which calls a script that starts the whole system. The first time you execute it another flink directory for the second cluster will be created locally.
+
+```
+./stop.sh
+```
+to stop everything (Flink, Kafka, Zookeeper, ...).
