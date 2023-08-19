@@ -2,6 +2,8 @@
 
 In this project, we are using Apache Flink as a stream-processing framework to execute queries in a multi-cluster network, the results of which we then join and aggregate. We aim to emulate various network conditions by manipulating different network parameters such as delays, window sizes, and buffer sizes, which allows us to measure the impact of these on throughput and latency.
 
+For further information, check out the [Wiki](https://github.com/kevinnguyen20/data-aggregation-in-distributed-networks/wiki) pages.
+
 # Steps to run the application
 
 ## Prerequisites
@@ -54,4 +56,9 @@ calls a script that starts the whole system. The first time you execute it anoth
 ```
 stops everything (Flink, Kafka, Zookeeper, ...).
 
-For further information, check out the [Wiki](https://github.com/kevinnguyen20/data-aggregation-in-distributed-networks/wiki) pages.
+# Developer Team
+
+* [Georgi Kotsev](https://github.com/gogokotsev00)
+* [Kevin Nguyen](https://github.com/kevinnguyen20)
+* [Krutarth Parwal](https://github.com/krutarth4)
+* [Momchil Petrov](https://github.com/Smoothex)
