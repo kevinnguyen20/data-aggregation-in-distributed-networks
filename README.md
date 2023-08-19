@@ -1,6 +1,6 @@
 # Data Aggregation in Distributed Networks
 
-In this project, we are using Apache Flink for executing queries in different networks, whose result we then transfer to a data aggregator. In the links between the networks and the aggregator, we emulate bad network conditions using Pumba in order to measure the impact of these on the whole execution time.
+In this project, we are using Apache Flink as a stream-processing framework to execute queries in a multi-cluster network, the results of which we then join and aggregate. We aim to emulate various network conditions by manipulating different network parameters such as delays, window sizes, and buffer sizes, which allows us to measure the impact of these on throughput and latency.
 
 # Steps to run the application
 
