@@ -67,4 +67,4 @@ Developers:
 
 Supervisor:
 
-* [Dr. Habib Mostafaei] (https://www.tue.nl/en/research/researchers/habib-mostafaei/)
+* [Dr. Habib Mostafaei](https://www.tue.nl/en/research/researchers/habib-mostafaei/)
