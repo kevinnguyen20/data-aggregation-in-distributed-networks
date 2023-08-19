@@ -47,9 +47,9 @@ From now on, it is only necessary to use two commands which are shown below:
 ```
 ./start.sh
 ```
-which calls a script that starts the whole system. The first time you execute it another flink directory for the second cluster will be created locally.
+calls a script that starts the whole system. The first time you execute it another flink directory for the second cluster will be created locally.
 
 ```
 ./stop.sh
 ```
-to stop everything (Flink, Kafka, Zookeeper, ...).
+stops everything (Flink, Kafka, Zookeeper, ...).
