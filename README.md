@@ -56,9 +56,15 @@ calls a script that starts the whole system. The first time you execute it anoth
 ```
 stops everything (Flink, Kafka, Zookeeper, ...).
 
-# Developer Team
+# Team
+
+Developers:
 
 * [Georgi Kotsev](https://github.com/gogokotsev00)
 * [Kevin Nguyen](https://github.com/kevinnguyen20)
 * [Krutarth Parwal](https://github.com/krutarth4)
 * [Momchil Petrov](https://github.com/Smoothex)
+
+Supervisor:
+
+* [Dr. Habib Mostafaei] (https://www.tue.nl/en/research/researchers/habib-mostafaei/)
