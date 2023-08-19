@@ -53,3 +53,5 @@ calls a script that starts the whole system. The first time you execute it anoth
 ./stop.sh
 ```
 stops everything (Flink, Kafka, Zookeeper, ...).
+
+For further information, check out the [Wiki](https://github.com/kevinnguyen20/data-aggregation-in-distributed-networks/wiki) pages.
