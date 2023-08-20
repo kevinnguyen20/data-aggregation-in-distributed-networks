@@ -133,6 +133,8 @@ void generate_data(const char* kafka_bootstrap_servers, const char* topic, int l
         //     // Reset counters
         //     messages_sent = 0;
         //     start_time = current_time;
+
+        //     fflush(stdout);
         // }
     }
 
