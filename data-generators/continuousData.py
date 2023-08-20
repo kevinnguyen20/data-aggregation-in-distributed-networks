@@ -59,7 +59,7 @@ def validate_number_of_cluster(number_of_cluster):
         sys.exit(1)
 
 def validate_line_index(line_index):
-    with open("../delays.txt", "r") as file:
+    with open("delays.txt", "r") as file:
         lines = file.readlines()
 
     if line_index < 1 or line_index >= len(lines):
