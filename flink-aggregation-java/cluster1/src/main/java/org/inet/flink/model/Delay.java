@@ -45,7 +45,7 @@ public class Delay implements Serializable {
     // Delay in ms
     public double calculateDelay() {
         Random random = new Random();
-        double probability = 1.0 / 5.0;
+        double probability = 5.0 / 5.0;
         if (random.nextDouble()<probability) {
             double gaussian = random.nextGaussian() * this.mdevDelay + this.avgDelay;
             double delay = Math.min(this.maxDelay, Math.max(this.minDelay, gaussian));

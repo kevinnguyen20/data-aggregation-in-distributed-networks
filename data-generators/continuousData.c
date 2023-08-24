@@ -147,10 +147,10 @@ void generate_data(const char* kafka_bootstrap_servers, const char* topic, int l
 
         free(json_record);
 
-        if (i == window_size) {
-            sleep(time_for_sleep);
-        }
-        i++;
+        // if (i == window_size) {
+        //     sleep(time_for_sleep);
+        // }
+        // i++;
         // messages_sent++;
 
         // Check if 10 seconds have passed

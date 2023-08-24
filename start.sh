@@ -14,3 +14,8 @@ if [[ "$DOCKER_DEPLOYMENT" = "true" ]]; then
 
     cd "$PROJECT_HOME/docker-app" && sudo ./start.sh
 fi
+
+# For testing only
+sleep 300
+
+cd "$PROJECT_HOME" && ./stop.sh

@@ -84,7 +84,7 @@ if [[ "$1" = "start" ]]; then
     # Uncomment if you are too lazy to open the links by yourself
     sleep 5
 
-    xdg-open "http://localhost:8081" > /dev/null 2>&1 &
+    # xdg-open "http://localhost:8081" > /dev/null 2>&1 &
     xdg-open "http://localhost:8091" > /dev/null 2>&1 &
 fi
 
