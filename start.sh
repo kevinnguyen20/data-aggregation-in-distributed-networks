@@ -16,6 +16,16 @@ if [[ "$DOCKER_DEPLOYMENT" = "true" ]]; then
 fi
 
 # For testing only
-sleep 300
+# sleep 300
 
-cd "$PROJECT_HOME" && ./stop.sh
+# if [[ "$DOCKER_DEPLOYMENT" = "false" ]]; then
+#     cd "$PROJECT_HOME/shell-scripts" && ./extract-throughput.sh
+#     cd "$PROJECT_HOME" && ./stop.sh
+# fi
+
+# if [[ "$DOCKER_DEPLOYMENT" = "true" ]]; then
+#     cd "$PROJECT_HOME"
+#     sudo docker logs flink-taskmanager-2 > result.txt
+#     cd "$PROJECT_HOME/shell-scripts" && ./extract-throughput.sh
+#     cd "$PROJECT_HOME" && ./stop.sh
+# fi

@@ -85,7 +85,7 @@ if [[ "$1" = "start" ]]; then
     sleep 5
 
     # xdg-open "http://localhost:8081" > /dev/null 2>&1 &
-    xdg-open "http://localhost:8091" > /dev/null 2>&1 &
+    # xdg-open "http://localhost:8091" > /dev/null 2>&1 &
 fi
 
 if [[ "$1" = "stop" ]]; then
