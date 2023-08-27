@@ -16,3 +16,6 @@ RUN gcc -o continuousData continuousData.c -lrdkafka -lcjson
 
 # Set the entry point for the container
 # ENTRYPOINT ["./continuousData"]
+
+# # Mount the host's timezone information into the container
+# VOLUME /etc/localtime:/etc/localtime:ro

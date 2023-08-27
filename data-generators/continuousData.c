@@ -42,6 +42,8 @@ char* generate_product_json(const Product* product) {
     cJSON_AddStringToObject(root, "name", product->name);
     cJSON_AddNumberToObject(root, "price", product->price);
 
+    cJSON_AddNumberToObject(root, "timestamp", (double)time(NULL));
+
     char* json_str = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
 

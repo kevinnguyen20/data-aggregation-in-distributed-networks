@@ -11,6 +11,8 @@ import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.functions.ProcessFunction.Context;
+import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
 import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
@@ -25,6 +27,7 @@ import org.apache.flink.streaming.api.functions.windowing.AllWindowFunction;
 import org.inet.flink.generator.DataGenerator;
 import org.inet.flink.mapper.JsonToProductMapper;
 import org.inet.flink.model.Product;
+import org.inet.flink.mapper.LagCalculationFunction;
 
 public class DataStreamJob {
 
@@ -50,7 +53,7 @@ public class DataStreamJob {
 
 		// Receive data from data generator
 		KafkaSource<String> dataGeneratorSource = createKafkaSource(CONSUMER_TOPIC_2, "data-generator");
-		WatermarkStrategy watermarkStrategy = WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(2)).withIdleness(Duration.ofSeconds(15));
+		WatermarkStrategy watermarkStrategy = WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(10)).withIdleness(Duration.ofSeconds(15));
 		DataStream<String> streamSource = env.fromSource(dataGeneratorSource,
 		watermarkStrategy, "Kafka Data Generator");
 
@@ -66,7 +69,7 @@ public class DataStreamJob {
 
 		// Start receiving data from first cluster
 		KafkaSource<String> firstClusterSource = createKafkaSource(CLUSTER_COMMUNICATION_TOPIC, "data-between-clusters");
-		WatermarkStrategy watermarkStrategy2 = WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(2)).withIdleness(Duration.ofSeconds(15));
+		WatermarkStrategy watermarkStrategy2 = WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(10)).withIdleness(Duration.ofSeconds(15));
 		DataStream<String> dataFromFirstCluster = env.fromSource(firstClusterSource, watermarkStrategy2, "First Cluster Data");
 
 		// Filter data from first cluster by name and price
@@ -80,19 +83,53 @@ public class DataStreamJob {
 
 		// Print number of products
 		DataStream<String> countPerWindow = joinedProducts
-			.windowAll(SlidingEventTimeWindows.of(Time.seconds(30), Time.seconds(5)))
-			.apply(new AllWindowFunction<Product, Long, TimeWindow>() {
-				public void apply(TimeWindow window, Iterable<Product> products, Collector<Long> out) throws Exception {
-					long count = 0;
-					for (Product product : products) {
-						count++;
-					}
-					out.collect(count);
+			// .windowAll(SlidingEventTimeWindows.of(Time.seconds(30), Time.seconds(5)))
+			// .apply(new AllWindowFunction<Product, Long, TimeWindow>() {
+			// 	public void apply(TimeWindow window, Iterable<Product> products, Collector<Long> out) throws Exception {
+			// 		long count = 0;
+			// 		for (Product product : products) {
+			// 			count++;
+			// 		}
+			// 		out.collect(count);
+			// 	}
+			// })
+			// .name("Apply: Counting products")
+			// .map(count -> "Products: " + Math.round(count/30) + " records/s")
+			// .name("Map: Formatted product count");
+			// .process(new LagCalculationFunction())
+    		// .name("Calculate Event Time Lag");
+			.process(new ProcessFunction<Product, String>() {
+				@Override
+				public void processElement(Product product, Context context, Collector<String> collector) throws Exception {
+					double currentTimestamp = (double) System.currentTimeMillis();
+					double timeDifference = currentTimestamp - ( product.getTimestamp() * 1000); // Convert product timestamp to milliseconds
+					
+					String output = "Time Difference: " + timeDifference + " milliseconds";
+					collector.collect(output);
 				}
 			})
-			.name("Apply: Counting products")
-			.map(count -> "Products: " + Math.round(count/30) + " records/s")
-			.name("Map: Formatted product count");
+			.name("Calculate Time Difference and Print")
+			.windowAll(SlidingProcessingTimeWindows.of(Time.seconds(30), Time.seconds(5)))
+			.apply(new AllWindowFunction<String, Double, TimeWindow>() {
+				@Override
+				public void apply(TimeWindow window, Iterable<String> input, Collector<Double> out) throws Exception {
+					double sumTimeDifference = 0;
+					int count = 0;
+					
+					for (String timeDifferenceStr : input) {
+						double timeDifference = Double.parseDouble(timeDifferenceStr.split(": ")[1].split(" ")[0]); // Extract time difference value
+						sumTimeDifference += timeDifference;
+						count++;
+					}
+					
+					double mean = sumTimeDifference / count;
+					out.collect(mean);
+				}
+			})
+			.name("Calculate Mean Time Difference")
+			.map(mean -> "Time Difference: " + String.format("%.2f", mean) + " milliseconds");
+
+			
 		
 		countPerWindow.print();
 

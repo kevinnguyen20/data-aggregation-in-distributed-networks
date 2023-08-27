@@ -7,6 +7,7 @@ public class Product {
     private Long id;
     private String name;
     private Double price;
+    private double timestamp;
 
     public Product(Long id, String name, Double price) {
         this.id = id;
@@ -29,6 +30,10 @@ public class Product {
 
     public Double getPrice() {
         return price;
+    }
+
+    public double getTimestamp() {
+        return timestamp;
     }
 
     public void setName(String name) {

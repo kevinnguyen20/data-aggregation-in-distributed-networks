@@ -109,14 +109,14 @@ public class DataStreamJob {
 		// prices.print();
 
 		// Change the argument for alternative delays (1-15)
-		Delay delay = new Delay(1);
+		Delay delay = new Delay(5);
 
 		DataStream<String> sink = products
 			.map(new ProductToJsonMapper())
 			.name("Map: Product to Json")
 			// Changing the window size may cause cluster 2 to fail (cf. restart
 			// strategy)
-			.windowAll(TumblingEventTimeWindows.of(Time.seconds(10)))
+			.windowAll(TumblingEventTimeWindows.of(Time.seconds(10))) // or Time.milliseconds
 			.apply(new AllWindowFunction<String, String, TimeWindow>() {
 				public void apply(TimeWindow window, Iterable<String> products, Collector<String> out) throws Exception {
 					Thread.sleep((long) delay.calculateDelay());
