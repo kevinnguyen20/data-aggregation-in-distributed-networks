@@ -12,7 +12,7 @@ fig, ax = plt.subplots()
 ax.plot(x, y1, color='blue', marker='o', markersize=8, label='Records per second on localhost')
 ax.plot(x, y2, color='red', marker='s', markersize=8, label='Records per second in Docker')
 
-ax.set_ylim(0, max(max(y1), max(y2)) + 1000)  # Adding 1000 for some margin
+ax.set_ylim(0, max(max(y1), max(y2)) + 1000)
 ax.set_xscale('log')
 
 ax.set_xlabel('Buffer Size (ms)')

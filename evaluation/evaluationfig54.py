@@ -15,14 +15,14 @@ data.sort(key=lambda entry: entry[0])
 x_sorted, y1_sorted, y2_sorted = zip(*data)
 fig, ax = plt.subplots()
 
-ax.plot(x_sorted, y1_sorted, color='blue', marker='o', markersize=8, label='Localhost')
-ax.plot(x_sorted, y2_sorted, color='red', marker='s', markersize=8, label='Docker')
+ax.plot(x_sorted, y1_sorted, color='blue', marker='o', markersize=8, label='E2E latency on localhost')
+ax.plot(x_sorted, y2_sorted, color='red', marker='s', markersize=8, label='E2E latency in Docker')
 
 ax.set_ylim(4000, 5000)
 
 ax.set_xlabel('Delay (ms)')
 ax.set_ylabel('End-to-end latency (ms)')
-ax.set_title('End-to-end latency for specific delays')
+ax.set_title('End-to-End Latency for Specific Delays')
 
 ax.legend()
 plt.show()

@@ -15,14 +15,14 @@ data.sort(key=lambda entry: entry[0])
 x_sorted, y1_sorted, y2_sorted = zip(*data)
 fig, ax = plt.subplots()
 
-ax.plot(x_sorted, y1_sorted, color='blue', marker='o', markersize=8, label='Localhost')
-ax.plot(x_sorted, y2_sorted, color='red', marker='s', markersize=8, label='Docker')
+ax.plot(x_sorted, y1_sorted, color='blue', marker='o', markersize=8, label='Records per second on localhost')
+ax.plot(x_sorted, y2_sorted, color='red', marker='s', markersize=8, label='Records per second in Docker')
 
 ax.set_ylim(15000, 30000)
 
 ax.set_xlabel('Delay (ms)')
 ax.set_ylabel('Records per second')
-ax.set_title('Records per second for specific delays')
+ax.set_title('Records Per Second for Specific Delays')
 
 ax.legend()
 plt.show()
