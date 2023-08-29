@@ -18,7 +18,7 @@ ax.set_ylim(0, 10)
 
 ax.set_xlabel('Lateness Tolerance (ms)')
 ax.set_ylabel('Backpressure Rate (%)')
-ax.set_title('Backpressure Rates for Different Lateness Tolerances')
+ax.set_title('Backpressure Rates for Different Lateness Tolerance Limits')
 
 ax.legend()
 plt.show()
