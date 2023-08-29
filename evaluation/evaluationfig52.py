@@ -16,7 +16,7 @@ ax.set_ylim(0, max(max(y1), max(y2)) + 1000)
 ax.set_xscale('log')
 
 ax.set_xlabel('Buffer Size (ms)')
-ax.set_ylabel('Records per second')
+ax.set_ylabel('Records per Second')
 ax.set_title('Records per Second for Different Buffer Sizes')
 
 ax.legend()

@@ -16,8 +16,8 @@ ax.set_ylim(0, max(max(y1), max(y2)) + 1000)
 ax.set_xscale('log')
 
 ax.set_xlabel('Buffer Size (ms)')
-ax.set_ylabel('End-to-end latency (ms)')
-ax.set_title('End-to-end Latencies for Different Buffer Sizes')
+ax.set_ylabel('End-to-End Latency (ms)')
+ax.set_title('End-to-End Latencies for Different Buffer Sizes')
 
 ax.legend()
 plt.show()

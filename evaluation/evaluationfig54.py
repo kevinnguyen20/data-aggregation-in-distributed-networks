@@ -21,7 +21,7 @@ ax.plot(x_sorted, y2_sorted, color='red', marker='s', markersize=8, label='E2E l
 ax.set_ylim(4000, 5000)
 
 ax.set_xlabel('Delay (ms)')
-ax.set_ylabel('End-to-end latency (ms)')
+ax.set_ylabel('End-to-End Latency (ms)')
 ax.set_title('End-to-End Latency for Specific Delays')
 
 ax.legend()

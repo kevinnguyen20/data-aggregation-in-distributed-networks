@@ -17,7 +17,7 @@ ax.set_xscale('log')
 ax.set_ylim(15000, 30000)
 
 ax.set_xlabel('Lateness Tolerance (ms)')
-ax.set_ylabel('Records per second')
+ax.set_ylabel('Records per Second')
 ax.set_title('Records per Second for Different Lateness Tolerance Limits')
 
 ax.legend()

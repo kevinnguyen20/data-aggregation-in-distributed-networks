@@ -21,8 +21,8 @@ ax.plot(x_sorted, y2_sorted, color='red', marker='s', markersize=8, label='Recor
 ax.set_ylim(15000, 30000)
 
 ax.set_xlabel('Delay (ms)')
-ax.set_ylabel('Records per second')
-ax.set_title('Records Per Second for Specific Delays')
+ax.set_ylabel('Records per Second')
+ax.set_title('Records per Second for Specific Delays')
 
 ax.legend()
 plt.show()

@@ -16,8 +16,8 @@ ax.set_ylim(4000, 5000)  # Adjust the y-axis limits
 ax.set_xscale('log')
 
 ax.set_xlabel('Lateness Tolerance (ms)')
-ax.set_ylabel('End-to-end latency (ms)')
-ax.set_title('End-to-end Latencies for Different Lateness Tolerance Limits')
+ax.set_ylabel('End-to-End Latency (ms)')
+ax.set_title('End-to-End Latencies for Different Lateness Tolerance Limits')
 
 ax.legend()
 plt.show()
