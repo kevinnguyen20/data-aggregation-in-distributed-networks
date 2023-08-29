@@ -41,6 +41,8 @@ char* generate_product_json(const Product* product) {
     cJSON_AddStringToObject(root, "name", product->name);
     cJSON_AddNumberToObject(root, "price", product->price);
 
+    cJSON_AddNumberToObject(root, "timestamp", (double)time(NULL));
+
     char* json_str = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
 
@@ -133,6 +135,8 @@ void generate_data(const char* kafka_bootstrap_servers, const char* topic, int l
         //     // Reset counters
         //     messages_sent = 0;
         //     start_time = current_time;
+
+        //     fflush(stdout);
         // }
     }
 
