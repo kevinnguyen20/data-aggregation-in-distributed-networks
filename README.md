@@ -35,6 +35,7 @@ sudo apt install libcjson-dev
 
 ```
 pip install kafka-python3
+pip install matplotlib
 ```
 
 ## Run the application
