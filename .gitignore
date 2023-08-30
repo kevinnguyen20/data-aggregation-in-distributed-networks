@@ -6,3 +6,4 @@ records/
 data-generators/*.class
 data-generators/continuousData
 docker-app/jobs/
+.idea
