@@ -30,6 +30,8 @@ sudo apt install libcjson-dev
 
 ### Python (Optional)
 
+Python was only used for evaluating our experiments. Our application can still run without Python.
+
 - Python 3.10.12: https://www.python.org/downloads/
 - pip: https://pip.pypa.io/en/stable/installation/
 
