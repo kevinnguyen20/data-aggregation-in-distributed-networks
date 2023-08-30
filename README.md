@@ -4,19 +4,18 @@ In this project, we are using Apache Flink as a stream-processing framework to e
 
 For further information, check out the [Wiki](https://github.com/kevinnguyen20/data-aggregation-in-distributed-networks/wiki) pages.
 
-# Steps to run the application
+# Prerequisites
 
-## Prerequisites
 
-### Software
+| Technology | Version | Download link |
+|------|-------|------------|
+| Java SE | 11.0.19  | https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html |
+| Apache Kafka | 2.12-3.4.0  | https://kafka.apache.org/downloads |
+| Apache Flink | 1.17.1 | https://flink.apache.org/downloads/ |
+| Apache Maven | 3.9.4 | https://maven.apache.org/download.cgi |
+| Docker | latest | https://docs.docker.com/get-docker/ |
 
-- Java SE 11.0.19: https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html
-- Apache Kafka 2.12-3.4.1: https://kafka.apache.org/downloads
-- Apache Flink 1.17.1: https://flink.apache.org/downloads/
-- Apache Maven: https://maven.apache.org/download.cgi
-- Docker: https://docs.docker.com/get-docker/
-
-Download Kafka binary `kafka_2.13-3.4.0` and Apache Flink binary `flink-1.17.1`, unzip them, and don't change anything in the Flink config directory.
+Download the Kafka binary `kafka_2.12-3.4.0` and the Apache Flink binary `flink-1.17.1`, unzip them, and don't change anything in the Flink config directory.
 
 ### Libraries
 
@@ -32,18 +31,18 @@ sudo apt install libcjson-dev
 
 Python was only used for evaluating our experiments. Our application can still run without Python.
 
-- Python 3.10.12: https://www.python.org/downloads/
-- pip: https://pip.pypa.io/en/stable/installation/
+- [Python 3.10.12](https://www.python.org/downloads/)
+- [pip](https://pip.pypa.io/en/stable/installation/)
 
 ```
 pip install kafka-python3
 pip install matplotlib
 ```
 
-## Run the application
+# Run the application
 
 1. Clone the repository. If you need help, follow these [instructions](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository).
-2. You have to create a `config.sh` file from the `config.sh.template` and put the paths for your pc and place it in the `shell-scripts/` directory.
+2. Create a `config.sh` file from the `config.sh.template` and add the paths from your system. Then place it in the `shell-scripts/` directory.
 3. In the ```docker-app``` folder you need a folder `jobs` where the jars for both clusters will be stored when using Docker.
 
 **Note**: Before starting the app, make sure that you have set the correct value (`false` or `true`) for the variable ```DOCKER_DEPLOYMENT``` in the ```config.sh``` file depending on what environment you want to work with.
@@ -60,7 +59,7 @@ calls a script that starts the whole system. The first time you execute it anoth
 ```
 stops everything (Flink, Kafka, Zookeeper, ...).
 
-## System specifications of our machines
+# System specifications of our machines
 
 For our experiments, we utilized two different machines running Ubuntu 22.04 as the operating system. The first machine runs Ubuntu on a virtual machine using VirtualBox 5, while the second machine employs Ubuntu as the native operating system.
 
@@ -75,11 +74,11 @@ The experiments were conducted on the machine with native Ubuntu as OS.
 
 # FAQ
 
-## Kafka is not working as expected
+### Kafka is not working as expected
 
-Try to change the `sleep` value in `shell-scripts.sh`. Increase the value if necessary. The probleme arises when the Kafka broker is not running and the user tries to connect to it.
+Try to change the `sleep` value in `shell-scripts.sh`. Increase the value if necessary. This problem may occur when the Kafka broker is still starting, but still not running fully and the user tries to connect to it.
 
-## Flink jobs cannot be submitted
+### Flink jobs cannot be submitted
 
 The Flink clusters need some time to be up and running. Increase the `sleep` value in `shell-scripts.sh` if necessary.
 
