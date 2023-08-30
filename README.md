@@ -60,6 +60,19 @@ calls a script that starts the whole system. The first time you execute it anoth
 ```
 stops everything (Flink, Kafka, Zookeeper, ...).
 
+## System specifications of our machines
+
+For our experiments, we utilized two different machines running Ubuntu 22.04 as the operating system. The first machine runs Ubuntu on a virtual machine using VirtualBox 5, while the second machine employs Ubuntu as the native operating system.
+
+Parameter | Virtual machine | Native OS
+|---|---|---|
+RAM | 11 GB | 32 GB
+Processor | Intel i7-10750H CPU 2.60GHz × 6 cores | AMD Ryzen 5 5600 × 6 cores
+Storage | 70 GB | 1000 GB
+GPU | NVIDIA GeForce RTX 3060 6 GB | NVIDIA GeForce RTX 3070 8 GB
+
+The experiments were conducted on the machine with native Ubuntu as OS.
+
 # Team
 
 Developers:
@@ -72,16 +85,3 @@ Developers:
 Supervisor:
 
 * [Dr. Habib Mostafaei](https://www.tue.nl/en/research/researchers/habib-mostafaei/)
-
-# System specifications of our machines
-
-For our experiments, we utilized two different machines running Ubuntu 22.04 as the operating system. The first machine runs Ubuntu on a virtual machine using VirtualBox 5, while the second machine employs Ubuntu as the native operating system.
-
-Parameter | Virtual machine | Native OS
-|---|---|---|
-RAM | 11 GB | 32 GB
-Processor | Intel i7-10750H CPU 2.60GHz × 6 cores | AMD Ryzen 5 5600 × 6 cores
-Storage | 70 GB | 1000 GB
-GPU | NVIDIA GeForce RTX 3060 6 GB | NVIDIA GeForce RTX 3070 8 GB
-
-The experiments were conducted on the machine with native Ubuntu as OS.
