@@ -58,7 +58,6 @@ if [[ "$1" = "start" ]]; then
     # Start Zookeeper and the Kafka broker
     cd "$PROJECT_HOME/shell-scripts" || exit
     ./kafka-service.sh start
-    # source ./delay.sh start
 
     # Start the data generators
     sleep 10
@@ -74,24 +73,17 @@ if [[ "$1" = "start" ]]; then
     "$FLINK_HOME_2/bin/start-cluster.sh" > /dev/null 2>&1 &
 
     # Submit the job to the Flink cluster
-    # "$FLINK_HOME/bin/flink" run
-    # "$FLINK_JOB_DIRECTORY/cluster1-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
     "$FLINK_HOME/bin/flink" run "$FLINK_JOB_DIRECTORY/cluster1-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
-    # "$FLINK_HOME_2/bin/flink" run
-    # "$FLINK_JOB_DIRECTORY_2/cluster2-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
     "$FLINK_HOME_2/bin/flink" run "$FLINK_JOB_DIRECTORY_2/cluster2-1.0-SNAPSHOT.jar" > /dev/null 2>&1 &
 
     # Uncomment if you are too lazy to open the links by yourself
     # sleep 5
 
-    # xdg-open "http://localhost:8081" > /dev/null 2>&1 &
-    # xdg-open "http://localhost:8091" > /dev/null 2>&1 &
+    xdg-open "http://localhost:8081" > /dev/null 2>&1 &
+    xdg-open "http://localhost:8091" > /dev/null 2>&1 &
 fi
 
 if [[ "$1" = "stop" ]]; then
-    # Stop xdg-open
-    # pkill -f "xdg-open"
-
     # Stop the Flink cluster
     "$FLINK_HOME/bin/stop-cluster.sh"
     "$FLINK_HOME_2/bin/stop-cluster.sh"
@@ -100,7 +92,6 @@ if [[ "$1" = "stop" ]]; then
     stopDataGenerators
 
     # Stop Zookeeper and the Kafka broker
-    # source ./delay.sh stop
     cd "$PROJECT_HOME/shell-scripts" || exit
     ./kafka-service.sh stop
 fi

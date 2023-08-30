@@ -7,7 +7,7 @@ if [[ "$DOCKER_DEPLOYMENT" = "false" ]]; then
     log_file=$(ls -t "$FLINK_HOME_2/log/" | grep '\.out$' | head -n 1)
 
     # Number of latest records to consider
-    num_records=29
+    num_records=48
 
     # Extract the latest records and calculate the mean
     mean_value=$(tail -n $num_records "$FLINK_HOME_2/log/$log_file" | grep -o 'Time Difference: [0-9.]* milliseconds' | awk '{ sum += $3; count++ } END { if (count > 0) print sum / count; else print 0 }')
@@ -21,7 +21,7 @@ if [[ "$DOCKER_DEPLOYMENT" = "true" ]]; then
     log_file="result.txt"
 
     # Number of latest records to consider
-    num_records=29
+    num_records=48
 
     # Extract the latest records and calculate the mean
     mean_value=$(tail -n $num_records "$PROJECT_HOME/$log_file" | grep -o 'Time Difference: [0-9.]* milliseconds' | awk '{ sum += $3; count++ } END { if (count > 0) print sum / count; else print 0 }')
