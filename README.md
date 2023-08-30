@@ -39,10 +39,11 @@ pip install kafka-python3
 
 ## Run the application
 
-1. You have to create a `config.sh` file from the `config.sh.template` and put the paths for your pc and place it in the `shell-scripts/` directory.
-2. In the ```docker-app``` folder you need a folder jobs where the jars for both clusters will be stored when using Docker.
+1. Clone the repository. If you need help, follow these [instructions](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository).
+2. You have to create a `config.sh` file from the `config.sh.template` and put the paths for your pc and place it in the `shell-scripts/` directory.
+3. In the ```docker-app``` folder you need a folder `jobs` where the jars for both clusters will be stored when using Docker.
 
-**Note**: Before starting the app, make sure that you have set the correct value for the variable ```DOCKER_DEPLOYMENT``` in the ```config.sh``` file depending on what environment you want to work with (`false` or `true`).
+**Note**: Before starting the app, make sure that you have set the correct value (`false` or `true`) for the variable ```DOCKER_DEPLOYMENT``` in the ```config.sh``` file depending on what environment you want to work with.
 
 From now on, it is only necessary to use two commands which are shown below:
 
