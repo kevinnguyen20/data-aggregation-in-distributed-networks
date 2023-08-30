@@ -73,6 +73,16 @@ GPU | NVIDIA GeForce RTX 3060 6 GB | NVIDIA GeForce RTX 3070 8 GB
 
 The experiments were conducted on the machine with native Ubuntu as OS.
 
+# FAQ
+
+## Kafka is not working as expected
+
+Try to change the `sleep` value in `shell-scripts.sh`. Increase the value if necessary. The probleme arises when the Kafka broker is not running and the user tries to connect to it.
+
+## Flink jobs cannot be submitted
+
+The Flink clusters need some time to be up and running. Increase the `sleep` value in `shell-scripts.sh` if necessary.
+
 # Team
 
 Developers:
