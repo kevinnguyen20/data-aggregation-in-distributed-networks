@@ -16,6 +16,9 @@ if [[ "$DOCKER_DEPLOYMENT" = "true" ]]; then
 fi
 
 # For testing only
+
+# Comment out the following lines to extract the throughput
+
 # sleep 300
 
 # if [[ "$DOCKER_DEPLOYMENT" = "false" ]]; then
@@ -30,16 +33,18 @@ fi
 #     cd "$PROJECT_HOME" && ./stop.sh
 # fi
 
-sleep 180
+# Comment out the following lines to extract the end-to-end latency
 
-if [[ "$DOCKER_DEPLOYMENT" = "false" ]]; then
-    cd "$PROJECT_HOME/shell-scripts" && ./extract-latency.sh
-    cd "$PROJECT_HOME" && ./stop.sh
-fi
+# sleep 300
 
-if [[ "$DOCKER_DEPLOYMENT" = "true" ]]; then
-    cd "$PROJECT_HOME"
-    sudo docker logs flink-taskmanager-2 > result.txt
-    cd "$PROJECT_HOME/shell-scripts" && ./extract-latency.sh
-    cd "$PROJECT_HOME" && ./stop.sh
-fi
+# if [[ "$DOCKER_DEPLOYMENT" = "false" ]]; then
+#     cd "$PROJECT_HOME/shell-scripts" && ./extract-latency.sh
+#     cd "$PROJECT_HOME" && ./stop.sh
+# fi
+
+# if [[ "$DOCKER_DEPLOYMENT" = "true" ]]; then
+#     cd "$PROJECT_HOME"
+#     sudo docker logs flink-taskmanager-2 > result.txt
+#     cd "$PROJECT_HOME/shell-scripts" && ./extract-latency.sh
+#     cd "$PROJECT_HOME" && ./stop.sh
+# fi
